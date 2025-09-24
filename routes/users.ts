@@ -100,4 +100,61 @@ router.delete('/:id', async (req: Request, res: Response) => {
 	}
 });
 
+
+
+// PUT update user
+router.put('/:id', async (req: Request, res: Response) => {
+	const { id } = req.params;
+	const { name, email, passwordHash } = req.body as Partial<UserRow>;
+
+	try {
+		const fields: string[] = [];
+		const values: unknown[] = [];
+
+		if (name !== undefined) {
+			fields.push('name = ?');
+			values.push(name);
+		}
+		if (email !== undefined) {
+			fields.push('email = ?');
+			values.push(email);
+		}
+		if (passwordHash !== undefined) {
+			fields.push('passwordHash = ?');
+			values.push(passwordHash);
+		}
+
+		if (fields.length === 0) {
+			return res.status(400).json({ message: 'No fields to update' });
+		}
+
+		// Ajout du champ updatedAt
+		fields.push('updatedAt = NOW()');
+
+		// Ajout de l'id à la fin
+		values.push(id);
+
+		const sql = `UPDATE users SET ${fields.join(', ')} WHERE IDusers = ?`;
+		const [result] = await pool.query<ResultSetHeader>(sql, values);
+
+		if (result.affectedRows === 0) {
+			return res.status(404).json({ message: 'User not found' });
+		}
+
+		// Retourne les champs mis à jour (si fournis)
+		return res.json({
+			IDusers: Number(id),
+			...(name !== undefined && { name }),
+			...(email !== undefined && { email }),
+		});
+	} catch (err: any) {
+		if (err?.code === 'ER_DUP_ENTRY') {
+			return res.status(409).json({ message: 'Email already exists' });
+		}
+		return res.status(400).json({ message: (err as Error).message });
+	}
+});
+
 export default router;
+
+
