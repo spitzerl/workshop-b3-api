@@ -1,21 +1,39 @@
-## Workshop B3 API
+# Workshop B3 API
 
-API REST en TypeScript/Express pour la gestion d’utilisateurs, de ressources et de fichiers versionnés (upload, mise à jour, téléchargement, suppression). Stockage MySQL, gestion des uploads via Multer, et scripts de seed.
+API REST en TypeScript/Express pour gérer des utilisateurs, des ressources et des fichiers versionnés (upload, mise à jour, téléchargement, suppression). Stockage MySQL, gestion d’uploads via Multer, scripts de seed.
+
+## Caractéristiques clés
+- **CRUD** sur `users` et `resources`
+- **Gestion de fichiers**: upload, versioning, download, suppression
+- **Transactions** MySQL sur opérations critiques
+- **TypeScript** avec typage des réponses et du pool MySQL
+- **Configuration** par `.env`
 
 ### Sommaire
-- Présentation et choix techniques
-- Prérequis
-- Installation et configuration
-- Lancement (dev / prod)
-- Base de données (schéma et seed)
-- Routes et exemples de requêtes
-  - `/` (health)
-  - `/users` (CRUD)
-  - `/files` (upload, liste, téléchargement par version, mise à jour, suppression)
-  - `/resources` (CRUD)
-- Structure du projet
-- Scripts NPM
-- Notes de sécurité et bonnes pratiques
+- [Présentation et choix techniques](#présentation-et-choix-techniques)
+- [Prérequis](#prérequis)
+- [Installation et configuration](#installation-et-configuration)
+- [Lancement (dev / prod)](#lancement)
+- [Base de données (schéma et seed)](#base-de-données)
+  - [Jeu d’essai (SQL)](#jeu-dessai-sql)
+- [Routes et exemples](#routes-et-exemples)
+  - [1) Healthcheck](#1-healthcheck)
+  - [2) Users (CRUD)](#2-users-crud)
+  - [3) Files (upload, liste, téléchargement, versioning, suppression)](#3-files-upload-liste-téléchargement-versioning-suppression)
+  - [4) Resources (CRUD)](#4-resources-crud)
+- [Structure du projet](#structure-du-projet)
+- [Scripts NPM](#scripts-npm)
+- [Notes de sécurité et bonnes pratiques](#notes-de-sécurité-et-bonnes-pratiques)
+- [Support](#support)
+
+---
+
+### Guide rapide
+1. Créez `.env` (voir [Installation et configuration](#installation-et-configuration)).
+2. Créez la base et importez le schéma ([Base de données](#base-de-données)).
+3. (Optionnel) Exécutez le seed (`npm run seed`).
+4. Lancez l’API: `npm run dev` ou `npm start` ([Lancement](#lancement)).
+5. Testez les routes: consultez [Routes et exemples](#routes-et-exemples).
 
 ---
 
@@ -223,6 +241,27 @@ VALUES
 ### Routes et exemples
 
 Base URL: `http://localhost:3001`
+
+#### Cheat sheet des endpoints
+
+| Méthode | Route                         | Description                           |
+|---------|-------------------------------|---------------------------------------|
+| GET     | `/`                           | Healthcheck                           |
+| GET     | `/users`                      | Lister les utilisateurs               |
+| GET     | `/users/:id`                  | Obtenir un utilisateur                |
+| POST    | `/users`                      | Créer un utilisateur                  |
+| PUT     | `/users/:id`                  | Mettre à jour un utilisateur          |
+| DELETE  | `/users/:id`                  | Supprimer un utilisateur              |
+| POST    | `/files/upload`               | Uploader un fichier                   |
+| GET     | `/files`                      | Lister les fichiers                   |
+| GET     | `/files/:IDFileVersions`      | Télécharger par ID de version         |
+| PUT     | `/files/:IDfile/update`       | Créer une nouvelle version de fichier |
+| DELETE  | `/files/:IDfile`              | Supprimer un fichier et ses versions  |
+| GET     | `/resources`                  | Lister les ressources                 |
+| GET     | `/resources/:id`              | Obtenir une ressource                 |
+| POST    | `/resources`                  | Créer une ressource                   |
+| PUT     | `/resources/:id`              | Mettre à jour une ressource           |
+| DELETE  | `/resources/:id`              | Supprimer une ressource               |
 
 #### 1) Healthcheck
 - `GET /`
