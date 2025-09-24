@@ -1,95 +1,69 @@
-import { v4 as uuidv4 } from 'uuid';
 import pool from '../db';
-import { ResultSetHeader } from 'mysql2';
 
 async function main() {
-	console.log('Seeding database...');
+    console.log('Seeding database...');
 
-	// Users
-	const users = [
-		{ name: 'Alice', email: 'alice@example.com', passwordHash: '$2b$10$alicehash' },
-		{ name: 'Bob', email: 'bob@example.com', passwordHash: '$2b$10$bobhash' },
-		{ name: 'Charlie', email: 'charlie@example.com', passwordHash: '$2b$10$charliehash' }
-	];
+    await pool.query('START TRANSACTION');
+    try {
+        // Insertion des utilisateurs (IDs 1..3 attendus si table vide)
+        await pool.query(
+            "INSERT INTO users (name, email, passwordHash, createdAt, updatedAt) VALUES \
+            ('Alice Dupont', 'alice@example.com', 'hashedpassword1', NOW(), NOW()), \
+            ('Bob Martin', 'bob@example.com', 'hashedpassword2', NOW(), NOW()), \
+            ('Charlie Durand', 'charlie@example.com', 'hashedpassword3', NOW(), NOW())"
+        );
 
-	const userIds: number[] = [];
-	for (const u of users) {
-		const [res] = await pool.query<ResultSetHeader>(
-			"INSERT INTO users (name, email, passwordHash, createdAt, updatedAt) VALUES (?, ?, ?, NOW(), NOW())",
-			[u.name, u.email, u.passwordHash]
-		);
-		userIds.push(res.insertId);
-	}
+        // Insertion de ressources (référence IDusers existants)
+        await pool.query(
+            "INSERT INTO resources (title, description, IDusers, IDowner, updatedAt, createdAt) VALUES \
+            ('Guide MySQL', 'Introduction à MySQL', 1, 1, NOW(), NOW()), \
+            ('Projet React', 'Code source React', 2, 2, NOW(), NOW())"
+        );
 
-	// Resources
-	const resourcesData = [
-		{ title: 'Project Plan', description: 'Initial draft', IDusers: userIds[0], IDowner: userIds[0] },
-		{ title: 'Design Doc', description: 'v1', IDusers: userIds[1], IDowner: userIds[1] }
-	];
-	const resourceIds: number[] = [];
-	for (const r of resourcesData) {
-		const [res] = await pool.query<ResultSetHeader>(
-			"INSERT INTO resources (title, description, IDusers, IDowner, updatedAt, createdAt) VALUES (?, ?, ?, ?, NOW(), NOW())",
-			[r.title, r.description, r.IDusers, r.IDowner]
-		);
-		resourceIds.push(res.insertId);
-	}
+        // Insertion de versions de fichiers (IDs fixes)
+        await pool.query(
+            "INSERT INTO file_versions (IDFileVersions, uploadAt, IDfile, versionNumber, filepath) VALUES \
+            ('v1f1', NOW(), NULL, 1, '/files/mysql_v1.pdf'), \
+            ('v2f1', NOW(), NULL, 2, '/files/mysql_v2.pdf'), \
+            ('v1f2', NOW(), NULL, 1, '/files/react_v1.zip')"
+        );
 
-	// File versions and files
-	const fv1 = uuidv4();
-	const fv2 = uuidv4();
-	await pool.query(
-		"INSERT INTO file_versions (IDFileVersions, uploadAt, IDfile, versionNumber, filepath) VALUES (?, NOW(), NULL, ?, ?)",
-		[fv1, 1, '/files/project-plan-v1.pdf']
-	);
-	await pool.query(
-		"INSERT INTO file_versions (IDFileVersions, uploadAt, IDfile, versionNumber, filepath) VALUES (?, NOW(), NULL, ?, ?)",
-		[fv2, 1, '/files/design-doc-v1.pdf']
-	);
+        // Insertion de fichiers (types simples 'pdf' / 'zip')
+        await pool.query(
+            "INSERT INTO file (nameFile, typeFile, createdAt, IDusers, IDFileVersions, IDusers_1) VALUES \
+            ('Guide MySQL v2', 'pdf', CURDATE(), 1, 'v2f1', 1), \
+            ('Projet React', 'zip', CURDATE(), 2, 'v1f2', 2)"
+        );
 
-	const [fileRes1] = await pool.query<ResultSetHeader>(
-		"INSERT INTO file (nameFile, typeFile, createdAt, IDusers, IDFileVersions, IDusers_1) VALUES (?, ?, NOW(), ?, ?, ?)",
-		['project-plan.pdf', 'application/pdf', userIds[0], fv1, userIds[0]]
-	);
-	const fileId1 = fileRes1.insertId;
-	const [fileRes2] = await pool.query<ResultSetHeader>(
-		"INSERT INTO file (nameFile, typeFile, createdAt, IDusers, IDFileVersions, IDusers_1) VALUES (?, ?, NOW(), ?, ?, ?)",
-		['design-doc.pdf', 'application/pdf', userIds[1], fv2, userIds[1]]
-	);
-	const fileId2 = fileRes2.insertId;
+        // Optionnel: backfill de IDfile dans file_versions si nécessaire
+        // Assumant que les deux fichiers insérés ont reçu les IDs 1 et 2
+        await pool.query("UPDATE file_versions SET IDfile = 1 WHERE IDFileVersions IN ('v1f1','v2f1')");
+        await pool.query("UPDATE file_versions SET IDfile = 2 WHERE IDFileVersions = 'v1f2'");
 
-	// Backfill IDfile in file_versions (optional linkage)
-	await pool.query("UPDATE file_versions SET IDfile = ? WHERE IDFileVersions = ?", [fileId1, fv1]);
-	await pool.query("UPDATE file_versions SET IDfile = ? WHERE IDFileVersions = ?", [fileId2, fv2]);
+        // Insertion de messages (isRead)
+        await pool.query(
+            "INSERT INTO message (content, isRead, createdAt, IDusers) VALUES \
+            ('Bienvenue sur la plateforme !', FALSE, NOW(), 1), \
+            ('Merci pour l\\'upload.', TRUE, NOW(), 2), \
+            ('Partage reçu.', FALSE, NOW(), 3)"
+        );
 
-	// Messages
-	await pool.query(
-		"INSERT INTO message (content, read, createdAt, IDusers) VALUES (?, ?, NOW(), ?)",
-		['Bienvenue sur la plateforme', false, userIds[0]]
-	);
-	await pool.query(
-		"INSERT INTO message (content, read, createdAt, IDusers) VALUES (?, ?, NOW(), ?)",
-		['Document partagé avec vous', true, userIds[1]]
-	);
+        // Insertion de partages de ressources
+        await pool.query(
+            "INSERT INTO resource_share (IDresources_1, IDusers_1, permission, createdAt, IDresources, IDusers) VALUES \
+            (1, 2, 'read', NOW(), 1, 2), \
+            (2, 1, 'edit', NOW(), 2, 1)"
+        );
 
-	// Resource shares
-	await pool.query(
-		"INSERT INTO resource_share (IDresources_1, IDusers_1, permission, createdAt, IDresources, IDusers) VALUES (?, ?, ?, NOW(), ?, ?)",
-		[resourceIds[0], userIds[1], 'read', resourceIds[0], userIds[1]]
-	);
-	await pool.query(
-		"INSERT INTO resource_share (IDresources_1, IDusers_1, permission, createdAt, IDresources, IDusers) VALUES (?, ?, ?, NOW(), ?, ?)",
-		[resourceIds[1], userIds[0], 'write', resourceIds[1], userIds[0]]
-	);
-
-	console.log('Seeding done.');
+        await pool.query('COMMIT');
+        console.log('Seeding done.');
+    } catch (err) {
+        await pool.query('ROLLBACK');
+        console.error('Seed error:', err);
+        process.exitCode = 1;
+    } finally {
+        await pool.end();
+    }
 }
 
-main()
-	.catch((err) => {
-		console.error('Seed error:', err);
-		process.exitCode = 1;
-	})
-	.finally(async () => {
-		await pool.end();
-	});
+main();
