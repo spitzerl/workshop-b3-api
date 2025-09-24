@@ -12,6 +12,7 @@ API REST en TypeScript/Express pour la gestion d’utilisateurs, de ressources e
   - `/` (health)
   - `/users` (CRUD)
   - `/files` (upload, liste, téléchargement par version, mise à jour, suppression)
+  - `/resources` (CRUD)
 - Structure du projet
 - Scripts NPM
 - Notes de sécurité et bonnes pratiques
@@ -341,6 +342,55 @@ Stockage fichiers: `public/uploads/`
   ```
 
 Codes de statut utilisés: 200, 201, 204, 400, 404, 409, 500.
+
+#### 4) Resources (CRUD)
+Ressource: `routes/resources.ts`
+
+- `GET /resources`
+  - 200: liste des ressources
+  - Exemple:
+  ```bash
+  curl -s http://localhost:3001/resources
+  ```
+
+- `GET /resources/:id`
+  - 200: ressource
+  - 404: non trouvée
+  - Exemple:
+  ```bash
+  curl -s http://localhost:3001/resources/1
+  ```
+
+- `POST /resources`
+  - Body JSON requis: `{ title, description?, IDusers?, IDowner }`
+  - 201: `{ IDresources, title, description, IDowner }`
+  - 400: champs requis manquants
+  - Exemple:
+  ```bash
+  curl -s -X POST http://localhost:3001/resources \
+    -H 'Content-Type: application/json' \
+    -d '{"title":"Guide MySQL","description":"Intro","IDowner":1}'
+  ```
+
+- `PUT /resources/:id`
+  - Body JSON: tout sous-ensemble de `{ title, description, IDusers, IDowner }`
+  - 200: JSON des champs mis à jour + `IDresources`
+  - 400: aucun champ à mettre à jour
+  - 404: non trouvée
+  - Exemple:
+  ```bash
+  curl -s -X PUT http://localhost:3001/resources/1 \
+    -H 'Content-Type: application/json' \
+    -d '{"description":"Mise à jour"}'
+  ```
+
+- `DELETE /resources/:id`
+  - 204: supprimée
+  - 404: non trouvée
+  - Exemple:
+  ```bash
+  curl -i -X DELETE http://localhost:3001/resources/1
+  ```
 
 ---
 
