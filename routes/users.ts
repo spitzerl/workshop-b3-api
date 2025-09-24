@@ -44,7 +44,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 // POST create user
 router.post('/', async (req: Request, res: Response) => {
 	const { name, email, passwordHash } = req.body as Partial<UserRow>;
-	if (!name || !email || !passwordHash) {
+	if (!email) {
 		return res.status(400).json({ message: 'name, email and passwordHash are required' });
 	}
 	try {
