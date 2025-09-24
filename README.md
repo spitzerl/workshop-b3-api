@@ -33,7 +33,7 @@ API REST en TypeScript/Express pour gérer des utilisateurs, des ressources et d
 #### Avec Docker (Recommandé)
 1. Clonez le projet et copiez `env.example` vers `.env`
 2. Lancez avec Docker: `docker compose up --build`
-3. L'API est accessible sur `http://localhost:3001`
+3. L'API est accessible sur `http://localhost:3002`
 4. Testez les routes: consultez [Routes et exemples](#routes-et-exemples)
 
 #### Sans Docker (Développement)
@@ -131,19 +131,22 @@ docker-compose down
 3. **Commandes utiles** :
 ```bash
 # Exécuter le seed de données
-RUN_SEED=true docker-compose up --build
+RUN_SEED=true docker compose up --build
+
+# Ou exécuter le seed manuellement
+docker compose exec db mysql -u api_user -papipassword resource_management < sql/seed-data.sql
 
 # Redémarrer un service spécifique
-docker-compose restart api
+docker compose restart api
 
 # Accéder aux logs de l'API
-docker-compose logs -f api
+docker compose logs -f api
 
 # Accéder au conteneur de base de données
-docker-compose exec db mysql -u api_user -p resource_management
+docker compose exec db mysql -u api_user -p resource_management
 ```
 
-L'API sera accessible sur `http://localhost:3001` et la base de données MySQL sur le port `3307`.
+L'API sera accessible sur `http://localhost:3002` et la base de données MySQL sur le port `3308`.
 
 #### Développement local (sans Docker)
 

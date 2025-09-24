@@ -5,7 +5,7 @@
 
 set -e  # Arrêter en cas d'erreur
 
-API_URL="http://localhost:3001"
+API_URL="http://localhost:3002"
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 YELLOW='\033[1;33m'

@@ -5,7 +5,7 @@ async function main() {
 
     await pool.query('START TRANSACTION');
     try {
-        // Nettoyer les données existantes (optionnel, pour un seed propre)
+        // Nettoyer les données existantes
         console.log('🧹 Cleaning existing data...');
         await pool.query('DELETE FROM resource_share');
         await pool.query('DELETE FROM message');
@@ -30,38 +30,30 @@ async function main() {
         );
 
         console.log('📚 Inserting resources...');
-        // Insertion de ressources
+        // Insertion de ressources avec descriptions courtes
         await pool.query(
             "INSERT INTO resources (title, description, IDusers, IDowner, updatedAt, createdAt) VALUES \
-            ('Guide MySQL', 'Introduction à MySQL', 1, 1, NOW(), NOW()), \
-            ('Projet React', 'Application React moderne', 2, 2, NOW(), NOW()), \
-            ('API Documentation', 'Documentation API REST', 3, 3, NOW(), NOW())"
+            ('Guide MySQL', 'Introduction MySQL', 1, 1, NOW(), NOW()), \
+            ('Projet React', 'App React moderne', 2, 2, NOW(), NOW()), \
+            ('API Docs', 'Documentation API', 3, 3, NOW(), NOW())"
         );
 
         console.log('📁 Inserting file versions...');
-        // Insertion de versions de fichiers avec des chemins réalistes
-        const fileVersions = [
-            ['v1f1', 'mysql_guide_v1.pdf'],
-            ['v2f1', 'mysql_guide_v2.pdf'],
-            ['v1f2', 'react_project_v1.zip'],
-            ['v1f3', 'api_docs_v1.pdf']
-        ];
-
-        for (const [versionId, filename] of fileVersions) {
-            await pool.query(
-                "INSERT INTO file_versions (IDFileVersions, uploadAt, versionNumber, filepath) VALUES (?, NOW(), 1, ?)",
-                [versionId, `/app/public/uploads/${filename}`]
-            );
-        }
+        // Insertion de versions de fichiers
+        await pool.query(
+            "INSERT INTO file_versions (IDFileVersions, uploadAt, versionNumber, filepath) VALUES \
+            ('v1f1', NOW(), 1, '/app/public/uploads/mysql_v1.pdf'), \
+            ('v2f1', NOW(), 2, '/app/public/uploads/mysql_v2.pdf'), \
+            ('v1f2', NOW(), 1, '/app/public/uploads/react_v1.zip')"
+        );
 
         console.log('📄 Inserting files...');
-        // Insertion de fichiers avec la nouvelle structure (incluant filepath)
+        // Insertion de fichiers avec la nouvelle structure
         await pool.query(
             "INSERT INTO file (nameFile, typeFile, createdAt, IDusers, filepath, IDFileVersions, IDusers_1) VALUES \
-            ('Guide MySQL v1', 'application/pdf', NOW(), 1, '/app/public/uploads/mysql_guide_v1.pdf', 'v1f1', 1), \
-            ('Guide MySQL v2', 'application/pdf', NOW(), 1, '/app/public/uploads/mysql_guide_v2.pdf', 'v2f1', 1), \
-            ('Projet React', 'application/zip', NOW(), 2, '/app/public/uploads/react_project_v1.zip', 'v1f2', 2), \
-            ('Documentation API', 'application/pdf', NOW(), 3, '/app/public/uploads/api_docs_v1.pdf', 'v1f3', 3)"
+            ('Guide MySQL v1', 'application/pdf', NOW(), 1, '/app/public/uploads/mysql_v1.pdf', 'v1f1', 1), \
+            ('Guide MySQL v2', 'application/pdf', NOW(), 1, '/app/public/uploads/mysql_v2.pdf', 'v2f1', 1), \
+            ('Projet React', 'application/zip', NOW(), 2, '/app/public/uploads/react_v1.zip', 'v1f2', 2)"
         );
 
         // Mettre à jour les file_versions avec les IDs de fichiers
@@ -69,17 +61,14 @@ async function main() {
         await pool.query("UPDATE file_versions SET IDfile = 1 WHERE IDFileVersions = 'v1f1'");
         await pool.query("UPDATE file_versions SET IDfile = 1 WHERE IDFileVersions = 'v2f1'");
         await pool.query("UPDATE file_versions SET IDfile = 2 WHERE IDFileVersions = 'v1f2'");
-        await pool.query("UPDATE file_versions SET IDfile = 3 WHERE IDFileVersions = 'v1f3'");
 
         console.log('💬 Inserting messages...');
-        // Insertion de messages
+        // Insertion de messages avec contenu court
         await pool.query(
             "INSERT INTO message (content, isRead, createdAt, IDusers) VALUES \
-            ('Bienvenue sur Workshop B3 !', FALSE, NOW(), 1), \
-            ('Merci pour l''upload MySQL.', TRUE, NOW(), 2), \
-            ('Partage reçu avec succès.', FALSE, NOW(), 3), \
-            ('Nouvelle version React disponible.', FALSE, NOW(), 1), \
-            ('Documentation API mise à jour.', TRUE, NOW(), 2)"
+            ('Bienvenue Workshop B3 !', FALSE, NOW(), 1), \
+            ('Merci upload MySQL', TRUE, NOW(), 2), \
+            ('Partage reçu', FALSE, NOW(), 3)"
         );
 
         console.log('🔐 Inserting resource shares...');
@@ -87,10 +76,7 @@ async function main() {
         await pool.query(
             "INSERT INTO resource_share (IDresources_1, IDusers_1, permission, createdAt, IDresources, IDusers) VALUES \
             (1, 2, 'read', NOW(), 1, 1), \
-            (1, 3, 'read', NOW(), 1, 1), \
-            (2, 1, 'edit', NOW(), 2, 2), \
-            (3, 1, 'read', NOW(), 3, 3), \
-            (3, 2, 'read', NOW(), 3, 3)"
+            (2, 1, 'edit', NOW(), 2, 2)"
         );
 
         await pool.query('COMMIT');

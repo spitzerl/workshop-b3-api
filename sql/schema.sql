@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS file_versions(
 CREATE TABLE IF NOT EXISTS message(
    IDmessage INT AUTO_INCREMENT,
    content VARCHAR(50) NOT NULL,
-   read BOOLEAN NOT NULL,
+   isRead BOOLEAN NOT NULL,
    createdAt DATETIME NOT NULL,
    IDusers INT NOT NULL,
    PRIMARY KEY(IDmessage),

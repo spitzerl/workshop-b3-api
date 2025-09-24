@@ -6,7 +6,7 @@ Ce guide vous permet de tester que votre API fonctionne correctement, que ce soi
 
 ### Pour Docker :
 - Docker et Docker Compose installés
-- Ports 3001 et 3307 disponibles
+- Ports 3002 et 3308 disponibles
 
 ### Pour test local :
 - Node.js 18+
@@ -190,7 +190,7 @@ rm -f test-file.txt
 #### 1. Port déjà utilisé
 ```bash
 # Vérifier les ports utilisés
-netstat -tlnp | grep -E ':(3001|3307)'
+netstat -tlnp | grep -E ':(3002|3308)'
 
 # Changer les ports dans .env si nécessaire
 ```
