@@ -62,15 +62,26 @@ router.post('/upload', upload.single('file'), async (req, res) => {
     const IDusers = req.body.IDusers;
 
     try {
+        // Générer un ID unique pour la version du fichier
+        const IDFileVersions = 'v1f' + Date.now();
+        
+        // D'abord créer la version du fichier
+        await db.query(
+            'INSERT INTO file_versions (IDFileVersions, uploadAt, versionNumber, filepath) VALUES (?, NOW(), 1, ?)',
+            [IDFileVersions, filePath]
+        );
+
+        // Ensuite créer l'entrée principale du fichier
         const [fileResult]: any = await db.query(
-            'INSERT INTO file (nameFile, typeFile, createdAt, IDusers, filepath) VALUES (?, ?, NOW(), ?, ?)',
-            [originalname, mimetype, IDusers, filePath]
+            'INSERT INTO file (nameFile, typeFile, createdAt, IDusers, filepath, IDFileVersions, IDusers_1) VALUES (?, ?, NOW(), ?, ?, ?, ?)',
+            [originalname, mimetype, IDusers, filePath, IDFileVersions, IDusers]
         );
         const IDfile = fileResult.insertId;
 
         res.status(201).json({
             message: 'Fichier téléchargé et données sauvegardées avec succès.',
             IDfile,
+            IDFileVersions,
             filename: originalname,
         });
 

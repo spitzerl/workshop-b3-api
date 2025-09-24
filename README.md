@@ -29,10 +29,18 @@ API REST en TypeScript/Express pour gérer des utilisateurs, des ressources et d
 ---
 
 ### Guide rapide
+
+#### Avec Docker (Recommandé)
+1. Clonez le projet et copiez `env.example` vers `.env`
+2. Lancez avec Docker: `docker compose up --build`
+3. L'API est accessible sur `http://localhost:3001`
+4. Testez les routes: consultez [Routes et exemples](#routes-et-exemples)
+
+#### Sans Docker (Développement)
 1. Créez `.env` (voir [Installation et configuration](#installation-et-configuration)).
 2. Créez la base et importez le schéma ([Base de données](#base-de-données)).
 3. (Optionnel) Exécutez le seed (`npm run seed`).
-4. Lancez l’API: `npm run dev` ou `npm start` ([Lancement](#lancement)).
+4. Lancez l'API: `npm run dev` ou `npm start` ([Lancement](#lancement)).
 5. Testez les routes: consultez [Routes et exemples](#routes-et-exemples).
 
 ---
@@ -93,6 +101,51 @@ npm run seed
 ---
 
 ### Lancement
+
+#### Avec Docker (Recommandé pour le déploiement)
+
+1. **Configuration initiale** :
+```bash
+# Copier le fichier d'environnement exemple
+cp env.example .env
+
+# Éditer .env selon vos besoins (optionnel, les valeurs par défaut fonctionnent)
+nano .env
+```
+
+2. **Lancement avec Docker Compose** :
+```bash
+# Construire et démarrer tous les services
+docker-compose up --build
+
+# En arrière-plan
+docker-compose up -d --build
+
+# Voir les logs
+docker-compose logs -f
+
+# Arrêter les services
+docker-compose down
+```
+
+3. **Commandes utiles** :
+```bash
+# Exécuter le seed de données
+RUN_SEED=true docker-compose up --build
+
+# Redémarrer un service spécifique
+docker-compose restart api
+
+# Accéder aux logs de l'API
+docker-compose logs -f api
+
+# Accéder au conteneur de base de données
+docker-compose exec db mysql -u api_user -p resource_management
+```
+
+L'API sera accessible sur `http://localhost:3001` et la base de données MySQL sur le port `3307`.
+
+#### Développement local (sans Docker)
 
 - Développement (watch + reload):
 ```bash
