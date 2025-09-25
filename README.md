@@ -1,143 +1,471 @@
 # 🚀 API Resource Management
 
-## Déploiement rapide (1 minute) - Tous OS
+## 📋 Table des matières
 
-### Prérequis
-- **Docker Desktop** installé ([télécharger ici](https://www.docker.com/products/docker-desktop))
-- Docker Desktop doit être **démarré**
+1. [Vue d'ensemble](#vue-densemble)
+2. [Installation](#installation)
+3. [Configuration](#configuration)
+4. [Documentation API](#documentation-api)
+5. [Architecture technique](#architecture-technique)
+6. [Dépannage](#dépannage)
 
-## 🖱️ Déploiement via l'interface Docker Desktop (sans ligne de commande)
+## Vue d'ensemble
 
-### Étape 1 : Préparation
-1. **Téléchargez le projet** (ZIP depuis GitHub ou git clone)
-2. **Ouvrez le dossier** `workshop-b3-api`
-3. **Copiez `.env.example`** et renommez-le en `.env`
+API REST pour la gestion des ressources développée avec Node.js, Express et MySQL.
 
-### Étape 2 : Dans Docker Desktop
-1. **Ouvrez Docker Desktop**
-2. Cliquez sur l'onglet **"Containers"** dans la barre latérale
-3. Cliquez sur **"Create"** ou **"+"** 
-4. Sélectionnez **"From existing source"** ou **"Compose"**
-5. **Naviguez** vers le dossier `workshop-b3-api`
-6. Sélectionnez le fichier **`docker-compose.yml`**
-7. Cliquez sur **"Deploy"** ou **"Start"**
+**Fonctionnalités principales :**
+- Gestion des utilisateurs et authentification
+- CRUD des ressources
+- Base de données MySQL
+- Containerisation Docker
 
-### Étape 3 : Vérification
-- Dans Docker Desktop, vous verrez apparaître un **stack** nommé `workshop-b3-api`
-- Cliquez dessus pour voir les 2 services : `api` et `mysql`
-- Les services doivent être **verts** (running)
+## 📦 Installation
 
-### 🔍 Gestion via Docker Desktop
+### Option 1 : Installation avec Docker (Recommandé)
 
-**Voir les logs :**
-- Cliquez sur votre stack → sélectionnez un service → onglet **"Logs"**
+#### Prérequis
+- Docker Desktop installé et démarré
+- Git (optionnel)
 
-**Redémarrer :**
-- Cliquez sur votre stack → bouton **"Restart"**
+#### Étapes d'installation
 
-**Arrêter :**
-- Cliquez sur votre stack → bouton **"Stop"** ou **"Delete"**
-
-**Ouvrir l'application :**
-- Cliquez sur le service `api` → vous verrez **"localhost:3002"** cliquable
-
-### 📱 Alternative : Extension Docker Desktop
-
-Si vous avez l'extension **"Compose"** installée :
-1. Ouvrez Docker Desktop
-2. Allez dans **"Dev Environments"**
-3. Cliquez **"Create"**
-4. Sélectionnez **"Local folder"**
-5. Choisissez le dossier `workshop-b3-api`
-6. Docker Desktop détectera automatiquement le `docker-compose.yml`
-
----
-
-## Installation automatique (ligne de commande)
-
-### 🪟 Windows
-```cmd
-# Cloner le projet
+1. **Récupérer le projet**
+```bash
 git clone <votre-repo>
 cd workshop-b3-api
+```
 
-# Double-cliquer sur deploy.bat OU en ligne de commande :
+2. **Configurer l'environnement**
+```bash
+# Windows
+copy .env.example .env
+
+# Linux/macOS
+cp .env.example .env
+```
+
+3. **Démarrer avec Docker**
+
+**🪟 Windows :**
+```cmd
 deploy.bat
 ```
 
-### 🐧 Linux / 🍎 macOS
+**🐧 Linux / 🍎 macOS :**
 ```bash
-# Cloner le projet
-git clone <votre-repo>
-cd workshop-b3-api
-
-# Lancer le script
 chmod +x deploy.sh
 ./deploy.sh
 ```
 
-### 🐳 Alternative universelle (tous OS)
+**🐳 Commande universelle :**
 ```bash
-# Si les scripts ne fonctionnent pas, commandes manuelles :
-cp .env.example .env
 docker-compose up --build -d
 ```
 
-### ✅ Vérification du déploiement
+4. **Vérification**
+- API : http://localhost:3002
+- Base de données : localhost:3308
 
-Une fois le déploiement terminé :
-- **API** : http://localhost:3002
-- **Base de données** : localhost:3308
+### Option 2 : Installation manuelle
 
-### 📚 Commandes utiles (tous OS)
+#### Prérequis
+- Node.js (v16+)
+- MySQL (v8+)
+- npm ou yarn
 
+#### Étapes
+
+1. **Installation des dépendances**
 ```bash
-# Voir les logs en temps réel
+npm install
+```
+
+2. **Configuration de la base de données**
+- Créer une base MySQL nommée `resource_management`
+- Créer un utilisateur `api_user` avec le mot de passe `apipassword`
+
+3. **Configuration**
+```bash
+cp .env.example .env
+# Modifier les variables DB_HOST, DB_USER, etc. dans .env
+```
+
+4. **Démarrage**
+```bash
+npm run dev
+```
+
+## ⚙️ Configuration
+
+### Variables d'environnement
+
+| Variable | Description | Défaut |
+|----------|-------------|---------|
+| `MYSQL_ROOT_PASSWORD` | Mot de passe root MySQL | `rootpassword` |
+| `MYSQL_DATABASE` | Nom de la base de données | `resource_management` |
+| `MYSQL_USER` | Utilisateur MySQL | `api_user` |
+| `MYSQL_PASSWORD` | Mot de passe utilisateur | `apipassword` |
+| `DB_PORT` | Port de la base de données | `3308` |
+| `API_PORT` | Port de l'API | `3002` |
+| `NODE_ENV` | Environnement d'exécution | `development` |
+| `RUN_SEED` | Exécuter les données de test | `false` |
+| `JWT_SECRET` | Clé secrète JWT | À définir |
+
+### Configuration Docker vs Manuel
+
+**Docker :** Utilise les variables `MYSQL_*` pour la création automatique de la base.
+
+**Manuel :** Décommentez et configurez les variables `DB_*` dans le .env :
+```env
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=YOUR_PASSWORD
+DB_NAME=resource_management
+PORT=3001
+```
+
+## 📚 Documentation API
+
+### URL de base
+```
+http://localhost:3002/api
+```
+
+### Authentification
+
+L'API utilise JWT (JSON Web Tokens) pour l'authentification.
+
+**Header requis pour les routes protégées :**
+```
+Authorization: Bearer <token>
+```
+
+### Routes d'authentification
+
+#### POST /auth/register
+Créer un nouveau compte utilisateur.
+
+**Body :**
+```json
+{
+  "email": "user@example.com",
+  "password": "motdepasse123",
+  "firstname": "John",
+  "lastname": "Doe"
+}
+```
+
+**Réponse (201) :**
+```json
+{
+  "message": "Utilisateur créé avec succès",
+  "user": {
+    "id": 1,
+    "email": "user@example.com",
+    "firstname": "John",
+    "lastname": "Doe"
+  }
+}
+```
+
+#### POST /auth/login
+Se connecter et obtenir un token JWT.
+
+**Body :**
+```json
+{
+  "email": "user@example.com",
+  "password": "motdepasse123"
+}
+```
+
+**Réponse (200) :**
+```json
+{
+  "message": "Connexion réussie",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 1,
+    "email": "user@example.com",
+    "firstname": "John",
+    "lastname": "Doe"
+  }
+}
+```
+
+### Routes des ressources
+
+#### GET /resources
+Récupérer toutes les ressources. 🔒 *Authentification requise*
+
+**Paramètres de requête :**
+- `page` (optionnel) : Numéro de page (défaut: 1)
+- `limit` (optionnel) : Nombre d'éléments par page (défaut: 10)
+- `search` (optionnel) : Recherche par nom
+
+**Exemple :**
+```
+GET /api/resources?page=1&limit=5&search=ordinateur
+```
+
+**Réponse (200) :**
+```json
+{
+  "resources": [
+    {
+      "id": 1,
+      "name": "Ordinateur portable",
+      "description": "MacBook Pro 13 pouces",
+      "category": "Informatique",
+      "available": true,
+      "created_at": "2024-01-15T10:30:00Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 5,
+    "total": 25,
+    "totalPages": 5
+  }
+}
+```
+
+#### GET /resources/:id
+Récupérer une ressource spécifique. 🔒 *Authentification requise*
+
+**Paramètres :**
+- `id` : ID de la ressource
+
+**Réponse (200) :**
+```json
+{
+  "id": 1,
+  "name": "Ordinateur portable",
+  "description": "MacBook Pro 13 pouces",
+  "category": "Informatique",
+  "available": true,
+  "created_at": "2024-01-15T10:30:00Z"
+}
+```
+
+#### POST /resources
+Créer une nouvelle ressource. 🔒 *Authentification requise*
+
+**Body :**
+```json
+{
+  "name": "Projecteur",
+  "description": "Projecteur HD 1080p",
+  "category": "Audiovisuel",
+  "available": true
+}
+```
+
+**Réponse (201) :**
+```json
+{
+  "message": "Ressource créée avec succès",
+  "resource": {
+    "id": 2,
+    "name": "Projecteur",
+    "description": "Projecteur HD 1080p",
+    "category": "Audiovisuel",
+    "available": true,
+    "created_at": "2024-01-15T11:00:00Z"
+  }
+}
+```
+
+#### PUT /resources/:id
+Modifier une ressource existante. 🔒 *Authentification requise*
+
+**Paramètres :**
+- `id` : ID de la ressource
+
+**Body (tous les champs optionnels) :**
+```json
+{
+  "name": "Projecteur 4K",
+  "description": "Projecteur Ultra HD 4K",
+  "available": false
+}
+```
+
+**Réponse (200) :**
+```json
+{
+  "message": "Ressource modifiée avec succès",
+  "resource": {
+    "id": 2,
+    "name": "Projecteur 4K",
+    "description": "Projecteur Ultra HD 4K",
+    "category": "Audiovisuel",
+    "available": false,
+    "updated_at": "2024-01-15T12:00:00Z"
+  }
+}
+```
+
+#### DELETE /resources/:id
+Supprimer une ressource. 🔒 *Authentification requise*
+
+**Paramètres :**
+- `id` : ID de la ressource
+
+**Réponse (200) :**
+```json
+{
+  "message": "Ressource supprimée avec succès"
+}
+```
+
+### Codes d'erreur
+
+| Code | Description |
+|------|-------------|
+| `400` | Bad Request - Données invalides |
+| `401` | Unauthorized - Token manquant ou invalide |
+| `403` | Forbidden - Accès refusé |
+| `404` | Not Found - Ressource non trouvée |
+| `409` | Conflict - Email déjà utilisé |
+| `500` | Internal Server Error - Erreur serveur |
+
+**Format d'erreur :**
+```json
+{
+  "error": "Message d'erreur",
+  "details": "Détails additionnels (optionnel)"
+}
+```
+
+## 🏗️ Architecture technique
+
+### Structure du projet
+```
+workshop-b3-api/
+├── src/
+│   ├── controllers/     # Logique métier
+│   ├── models/         # Modèles de données
+│   ├── routes/         # Définition des routes
+│   ├── middleware/     # Middlewares (auth, validation)
+│   ├── config/         # Configuration (DB, JWT)
+│   └── utils/          # Utilitaires
+├── docker-compose.yml  # Configuration Docker
+├── Dockerfile         # Image Docker de l'API
+├── .env.example       # Variables d'environnement exemple
+└── package.json       # Dépendances Node.js
+```
+
+### Technologies utilisées
+
+- **Runtime :** Node.js
+- **Framework :** Express.js
+- **Base de données :** MySQL 8.0
+- **ORM/Query Builder :** (à préciser selon votre implémentation)
+- **Authentification :** JWT (jsonwebtoken)
+- **Validation :** (à préciser selon votre implémentation)
+- **Containerisation :** Docker & Docker Compose
+
+### Base de données
+
+**Table users :**
+- `id` (INT, AUTO_INCREMENT, PRIMARY KEY)
+- `email` (VARCHAR, UNIQUE, NOT NULL)
+- `password` (VARCHAR, NOT NULL) - Hash bcrypt
+- `firstname` (VARCHAR, NOT NULL)
+- `lastname` (VARCHAR, NOT NULL)
+- `created_at` (TIMESTAMP)
+- `updated_at` (TIMESTAMP)
+
+**Table resources :**
+- `id` (INT, AUTO_INCREMENT, PRIMARY KEY)
+- `name` (VARCHAR, NOT NULL)
+- `description` (TEXT)
+- `category` (VARCHAR, NOT NULL)
+- `available` (BOOLEAN, DEFAULT true)
+- `created_at` (TIMESTAMP)
+- `updated_at` (TIMESTAMP)
+
+## 🔧 Commandes utiles
+
+### Docker
+```bash
+# Démarrer les services
+docker-compose up -d
+
+# Voir les logs
 docker-compose logs -f
 
-# Arrêter tous les services
+# Redémarrer
+docker-compose restart
+
+# Arrêter
 docker-compose down
 
-# Redémarrer les services
-docker-compose restart
+# Supprimer avec les volumes (reset complet)
+docker-compose down -v
+```
 
-# Reconstruire et redémarrer
+### Développement
+```bash
+# Mode développement
+npm run dev
+
+# Tests
+npm test
+
+# Linter
+npm run lint
+
+# Build production
+npm run build
+```
+
+## 🆘 Dépannage
+
+### Problèmes courants
+
+**Port déjà utilisé :**
+- Modifiez `API_PORT` dans `.env` (ex: 3003)
+- Modifiez `DB_PORT` dans `.env` (ex: 3309)
+
+**Erreur de connexion à la base :**
+- Vérifiez que Docker Desktop est démarré
+- Attendez 10-15 secondes après `docker-compose up`
+- Vérifiez les logs : `docker-compose logs mysql`
+
+**Token JWT invalide :**
+- Vérifiez que `JWT_SECRET` est défini dans `.env`
+- Le token expire après 24h par défaut
+
+**Erreur 404 sur toutes les routes :**
+- Vérifiez l'URL de base : `http://localhost:3002/api`
+- Pas `http://localhost:3002` directement
+
+### Logs de débogage
+
+```bash
+# Logs de l'API
+docker-compose logs -f api
+
+# Logs de la base de données
+docker-compose logs -f mysql
+
+# Logs de tous les services
+docker-compose logs -f
+```
+
+### Reset complet
+
+```bash
+# Arrêter et supprimer tout
+docker-compose down -v
+
+# Supprimer les images
+docker-compose down --rmi all
+
+# Redémarrer proprement
 docker-compose up --build -d
 ```
-
-### 🔧 Configuration personnalisée
-
-Modifiez le fichier `.env` puis redémarrez :
-```bash
-docker-compose restart
-```
-
-### 🆘 Dépannage
-
-**Docker Desktop ne démarre pas ?**
-- Vérifiez que la virtualisation est activée dans le BIOS
-- Redémarrez Docker Desktop
-
-**Ports déjà utilisés ?**
-- Modifiez `API_PORT` et `DB_PORT` dans `.env`
-- Exemple : `API_PORT=3003` et `DB_PORT=3309`
-
-**Interface Docker Desktop - Erreur de déploiement ?**
-- Vérifiez que le fichier `.env` existe (copiez `.env.example`)
-- Assurez-vous d'être dans le bon dossier avec `docker-compose.yml`
-
-**Base de données corrompue ?**
-```bash
-docker-compose down -v  # Supprime les volumes
-# Puis relancer le script de déploiement
-```
-
-### 💡 Notes importantes
-
-- **Interface graphique** : Plus simple, pas besoin de ligne de commande
-- **Windows** : Utilisez `deploy.bat` ou l'interface Docker Desktop
-- **Linux/macOS** : Utilisez `deploy.sh` ou l'interface Docker Desktop
-- **Docker Desktop** inclut automatiquement Docker Compose
-- Les scripts détectent automatiquement votre configuration
 
 
