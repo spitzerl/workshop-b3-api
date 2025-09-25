@@ -67,6 +67,21 @@ router.post('/upload', upload.single('file'), async (req, res) => {
     }
 
     try {
+        let actualOwnerId = ownerId;
+
+        // Si ownerId est un email, récupérer l'ID réel
+        if (ownerId.includes('@')) {
+            const [userRows]: any = await db.query(
+                'SELECT IDusers FROM users WHERE email = ?',
+                [ownerId]
+            );
+            if (userRows.length === 0) {
+                deleteFile(filePath);
+                return res.status(404).json({ error: 'Utilisateur non trouvé avec cet email.' });
+            }
+            actualOwnerId = userRows[0].IDusers;
+        }
+
         // Générer un ID unique pour la version du fichier
         const IDFileVersions = 'v1f' + Date.now();
 
@@ -79,7 +94,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
         // Ensuite créer l'entrée principale du fichier avec support isPublic
         const [fileResult]: any = await db.query(
             'INSERT INTO file (nameFile, typeFile, createdAt, IDusers, filepath, IDFileVersions, IDusers_1, isPublic) VALUES (?, ?, NOW(), ?, ?, ?, ?, ?)',
-            [originalname, mimetype, ownerId, filePath, IDFileVersions, ownerId, isPublic ? 1 : 0]
+            [originalname, mimetype, actualOwnerId, filePath, IDFileVersions, actualOwnerId, isPublic ? 1 : 0]
         );
         const IDfile = fileResult.insertId;
 
@@ -87,7 +102,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
             id: IDfile,
             name: originalname,
             mimeType: mimetype,
-            ownerId: ownerId,
+            ownerId: actualOwnerId,
             isPublic: isPublic,
             createdAt: new Date().toISOString(),
             path: filePath
@@ -120,20 +135,34 @@ router.post('/upload', upload.single('file'), async (req, res) => {
     });
 
     /**
-     * @route GET /files/user/:userId
-     * @desc  Récupère tous les fichiers d'un utilisateur spécifique.
+     * @route GET /files/user/:userIdentifier
+     * @desc  Récupère tous les fichiers d'un utilisateur spécifique (par ID ou email).
      */
-    router.get('/user/:userId', async (req, res) => {
-        const { userId } = req.params;
+    router.get('/user/:userIdentifier', async (req, res) => {
+        const { userIdentifier } = req.params;
         try {
-            const [files] = await db.query(
-                `SELECT f.IDfile as id, f.nameFile as name, f.typeFile as mimeType,
-                 f.createdAt, f.IDusers as ownerId,
-                 CASE WHEN f.isPublic = 1 THEN 'true' ELSE 'false' END as isPublic
-                 FROM file f
-                 WHERE f.IDusers = ?`,
-                [userId]
-            );
+            const decodedUserIdentifier = decodeURIComponent(userIdentifier);
+            const isEmail = decodedUserIdentifier.includes('@');
+            let query, params;
+
+            if (isEmail) {
+                query = `SELECT f.IDfile as id, f.nameFile as name, f.typeFile as mimeType,
+                        f.createdAt, f.IDusers as ownerId,
+                        CASE WHEN f.isPublic = 1 THEN 'true' ELSE 'false' END as isPublic
+                        FROM file f
+                        JOIN users u ON f.IDusers = u.IDusers
+                        WHERE u.email = ?`;
+                params = [decodedUserIdentifier];
+            } else {
+                query = `SELECT f.IDfile as id, f.nameFile as name, f.typeFile as mimeType,
+                        f.createdAt, f.IDusers as ownerId,
+                        CASE WHEN f.isPublic = 1 THEN 'true' ELSE 'false' END as isPublic
+                        FROM file f
+                        WHERE f.IDusers = ?`;
+                params = [decodedUserIdentifier];
+            }
+
+            const [files] = await db.query(query, params);
             res.json(files);
         } catch (err) {
             console.error('Erreur lors de la récupération des fichiers utilisateur:', err);

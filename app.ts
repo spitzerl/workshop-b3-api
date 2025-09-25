@@ -7,6 +7,7 @@ import indexRouter from './routes/index';
 import usersRouter from './routes/users';
 import filesRouter from './routes/files';
 import resourcesRouter from './routes/resources';
+import authRouter from './routes/auth';
 
 const app: Application = express();
 
@@ -20,5 +21,6 @@ app.use('/api', indexRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/files', filesRouter);
 app.use('/api/resources', resourcesRouter);
+app.use('/api/auth', authRouter);
 
 export default app;
