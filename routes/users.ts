@@ -27,14 +27,16 @@ router.get('/', async (_req: Request, res: Response) => {
 	}
 });
 
-// GET user by ID
-router.get('/:id', async (req: Request, res: Response) => {
-	const { id } = req.params;
+// GET user by ID or email
+router.get('/:identifier', async (req: Request, res: Response) => {
+	const { identifier } = req.params;
 	try {
-		const [rows] = await pool.query<UserRow[]>(
-			'SELECT IDusers as id, name, email, passwordHash, createdAt, updatedAt FROM users WHERE IDusers = ?',
-			[id]
-		);
+		const decodedIdentifier = decodeURIComponent(identifier);
+		const isEmail = decodedIdentifier.includes('@');
+		const query = isEmail
+			? 'SELECT IDusers as id, name, email, passwordHash, createdAt, updatedAt FROM users WHERE email = ?'
+			: 'SELECT IDusers as id, name, email, passwordHash, createdAt, updatedAt FROM users WHERE IDusers = ?';
+		const [rows] = await pool.query<UserRow[]>(query, [decodedIdentifier]);
 		const user = rows[0];
 		if (!user) return res.status(404).json({ message: 'User not found' });
 		// Ne pas renvoyer le passwordHash pour la sécurité
@@ -65,9 +67,11 @@ router.post('/', async (req: Request, res: Response) => {
 	}
 });
 
-// PUT update user
-router.put('/:id', async (req: Request, res: Response) => {
-	const { id } = req.params;
+// PUT update user by ID or email
+router.put('/:identifier', async (req: Request, res: Response) => {
+	const { identifier } = req.params;
+	const decodedIdentifier = decodeURIComponent(identifier);
+	const isEmail = decodedIdentifier.includes('@');
 	const { name, email, passwordHash } = req.body as Partial<UserRow>;
 	try {
 		const fields: string[] = [];
@@ -79,11 +83,15 @@ router.put('/:id', async (req: Request, res: Response) => {
 			return res.status(400).json({ message: 'No fields to update' });
 		}
 		fields.push('updatedAt = NOW()');
-		values.push(id);
-		const sql = `UPDATE users SET ${fields.join(', ')} WHERE IDusers = ?`;
+		values.push(decodedIdentifier);
+		const whereClause = isEmail ? 'email = ?' : 'IDusers = ?';
+		const sql = `UPDATE users SET ${fields.join(', ')} WHERE ${whereClause}`;
 		const [result] = await pool.query<ResultSetHeader>(sql, values);
 		if (result.affectedRows === 0) return res.status(404).json({ message: 'User not found' });
-		return res.json({ id: Number(id), name, email });
+		// Récupérer l'utilisateur mis à jour pour retourner l'ID correct
+		const getUserQuery = isEmail ? 'SELECT IDusers as id FROM users WHERE email = ?' : 'SELECT IDusers as id FROM users WHERE IDusers = ?';
+		const [userRows] = await pool.query<UserRow[]>(getUserQuery, [decodedIdentifier]);
+		return res.json({ id: userRows[0]?.id || Number(decodedIdentifier), name, email });
 	} catch (err: any) {
 		if (err && (err as any).code === 'ER_DUP_ENTRY') {
 			return res.status(409).json({ message: 'Email already exists' });
@@ -92,11 +100,14 @@ router.put('/:id', async (req: Request, res: Response) => {
 	}
 });
 
-// DELETE user
-router.delete('/:id', async (req: Request, res: Response) => {
-	const { id } = req.params;
+// DELETE user by ID or email
+router.delete('/:identifier', async (req: Request, res: Response) => {
+	const { identifier } = req.params;
 	try {
-		const [result] = await pool.query<ResultSetHeader>('DELETE FROM users WHERE IDusers = ?', [id]);
+		const decodedIdentifier = decodeURIComponent(identifier);
+		const isEmail = decodedIdentifier.includes('@');
+		const query = isEmail ? 'DELETE FROM users WHERE email = ?' : 'DELETE FROM users WHERE IDusers = ?';
+		const [result] = await pool.query<ResultSetHeader>(query, [decodedIdentifier]);
 		if (result.affectedRows === 0) return res.status(404).json({ message: 'User not found' });
 		return res.status(204).send();
 	} catch (err: any) {
