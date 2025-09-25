@@ -40,6 +40,12 @@ Intègre un système SOS connecté à ESP8266. Déploiement simplifié avec **Do
 - 🔒 **Sécurité renforcée** (utilisateurs non-root, healthchecks)
 - 📦 **Multi-stage builds** pour des images optimisées
 
+### 🆕 Nouvelles fonctionnalités
+
+- 📧 **Support des emails** - Utilisez directement les emails dans toutes les routes à la place des ID
+- 🔐 **Authentification simple** - Endpoint `/api/auth/verify` pour valider email/password
+- ⚡ **Prototype-ready** - Idéal pour développement rapide sans login complexe
+
 ## ⚡ Déploiement rapide
 
 > **TL;DR :** Quelques commandes Docker pour déployer l'API complète !
@@ -298,8 +304,9 @@ http://localhost:3002/api
 
 ### 🔐 Authentification
 
-⚠️ **Note :** Cette API n'implémente pas encore l'authentification JWT.
-Toutes les routes sont actuellement ouvertes pour faciliter le développement et les tests.
+✅ **Nouveauté :** L'API inclut maintenant un endpoint de vérification d'authentification.
+- **Support des emails** : Toutes les routes acceptent maintenant les emails à la place des ID utilisateur
+- **Endpoint d'authentification** : `/api/auth/verify` pour valider les couples email/password
 
 ### 🎯 Test rapide
 
@@ -341,10 +348,91 @@ curl http://localhost:3002/api
 }
 ```
 
-#### `DELETE /api/users/:id`
-> Supprimer un utilisateur
+#### `GET /api/users/:identifier`
+> Récupérer un utilisateur par ID ou email
+
+**Paramètres :**
+- `identifier` : ID utilisateur (ex: `1`) ou email (ex: `alice@example.com`)
+
+**Exemples :**
+```bash
+GET /api/users/1                    # Par ID
+GET /api/users/alice@example.com    # Par email
+```
+
+**Réponse `200` :**
+```json
+{
+  "id": 1,
+  "name": "Alice Dupont",
+  "email": "alice@example.com",
+  "createdAt": "2025-09-25T10:12:47.000Z",
+  "updatedAt": "2025-09-25T10:12:47.000Z"
+}
+```
+
+#### `PUT /api/users/:identifier`
+> Mettre à jour un utilisateur par ID ou email
+
+**Paramètres :**
+- `identifier` : ID utilisateur ou email
+
+**Payload (champs optionnels) :**
+```json
+{
+  "name": "Nouveau nom",
+  "email": "nouvel@email.com"
+}
+```
+
+#### `DELETE /api/users/:identifier`
+> Supprimer un utilisateur par ID ou email
+
+**Paramètres :**
+- `identifier` : ID utilisateur ou email
 
 **Réponse `204` :** Aucun contenu
+
+### 🔐 Routes d'authentification
+
+#### `POST /api/auth/verify`
+> Vérifier un couple email/password
+
+**Payload :**
+```json
+{
+  "email": "alice@example.com",
+  "password": "monmotdepasse"
+}
+```
+
+**Réponse `200` (authentification réussie) :**
+```json
+{
+  "valid": true,
+  "user": {
+    "id": 1,
+    "name": "Alice Dupont",
+    "email": "alice@example.com"
+  }
+}
+```
+
+**Réponse `401` (authentification échouée) :**
+```json
+{
+  "valid": false,
+  "message": "Invalid email or password"
+}
+```
+
+**Réponse `400` (données manquantes) :**
+```json
+{
+  "valid": false,
+  "message": "Email and password are required"
+}
+```
 
 ### 📦 Routes des ressources
 
@@ -408,9 +496,22 @@ GET /api/resources?page=1&limit=5&search=mysql
 {
   "title": "Nouveau Guide",
   "description": "Description du guide",
-  "IDowner": 1,
-  "IDusers": 1
+  "IDowner": "alice@example.com",  // Peut être un ID ou un email
+  "IDusers": "bob@example.com"     // Peut être un ID ou un email
 }
+```
+
+**Exemples :**
+```bash
+# Avec des emails
+curl -X POST /api/resources \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Mon Guide","IDowner":"alice@example.com","IDusers":"bob@example.com"}'
+
+# Avec des ID (fonctionnement classique)
+curl -X POST /api/resources \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Mon Guide","IDowner":1,"IDusers":2}'
 ```
 
 #### `PUT /api/resources/:id`
@@ -448,16 +549,40 @@ GET /api/resources?page=1&limit=5&search=mysql
 ]
 ```
 
-#### `GET /api/files/user/:userId`
+#### `GET /api/files/user/:userIdentifier`
 > Récupérer tous les fichiers d'un utilisateur spécifique
+
+**Paramètres :**
+- `userIdentifier` : ID utilisateur (ex: `1`) ou email (ex: `alice@example.com`)
+
+**Exemples :**
+```bash
+GET /api/files/user/1                    # Par ID
+GET /api/files/user/alice@example.com    # Par email
+```
 
 #### `POST /api/files/upload`
 > Uploader un nouveau fichier
 
 **Payload (multipart/form-data) :**
 - `file` : Le fichier à uploader
-- `ownerId` : ID du propriétaire
+- `ownerId` : ID du propriétaire ou email (ex: `alice@example.com`)
 - `isPublic` : true/false (optionnel, défaut: false)
+
+**Exemples :**
+```bash
+# Upload avec email
+curl -X POST /api/files/upload \
+  -F "file=@document.pdf" \
+  -F "ownerId=alice@example.com" \
+  -F "isPublic=true"
+
+# Upload avec ID (fonctionnement classique)
+curl -X POST /api/files/upload \
+  -F "file=@document.pdf" \
+  -F "ownerId=1" \
+  -F "isPublic=false"
+```
 
 **Réponse `201` :**
 ```json
@@ -847,6 +972,83 @@ rm -f .env
 cp .env.example .env
 echo "🚀 Redémarrage..."
 ./deploy.sh
+```
+
+## 🚀 Exemples d'utilisation avec emails
+
+### Scénario complet : Authentification et gestion de ressources
+
+```bash
+# 1. Vérifier les identifiants d'un utilisateur
+curl -X POST http://localhost:3002/api/auth/verify \
+  -H "Content-Type: application/json" \
+  -d '{"email":"alice@example.com","password":"motdepasse"}'
+
+# Réponse : {"valid":true,"user":{"id":1,"name":"Alice","email":"alice@example.com"}}
+
+# 2. Créer une ressource avec l'email de l'owner
+curl -X POST http://localhost:3002/api/resources \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title":"Mon projet React",
+    "description":"Application e-commerce",
+    "IDowner":"alice@example.com",
+    "IDusers":"bob@example.com"
+  }'
+
+# 3. Uploader un fichier pour cet utilisateur
+curl -X POST http://localhost:3002/api/files/upload \
+  -F "file=@projet.zip" \
+  -F "ownerId=alice@example.com" \
+  -F "isPublic=false"
+
+# 4. Récupérer tous les fichiers de l'utilisateur
+curl http://localhost:3002/api/files/user/alice@example.com
+
+# 5. Modifier les informations utilisateur
+curl -X PUT http://localhost:3002/api/users/alice@example.com \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Alice Dupont (Updated)"}'
+```
+
+### Intégration Frontend (JavaScript)
+
+```javascript
+// Authentification
+async function login(email, password) {
+  const response = await fetch('/api/auth/verify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password })
+  });
+
+  const result = await response.json();
+  if (result.valid) {
+    localStorage.setItem('currentUser', JSON.stringify(result.user));
+    return result.user;
+  }
+  throw new Error(result.message);
+}
+
+// Récupérer les ressources d'un utilisateur
+async function getUserResources(email) {
+  const response = await fetch(`/api/files/user/${encodeURIComponent(email)}`);
+  return response.json();
+}
+
+// Créer une ressource
+async function createResource(title, description, ownerEmail) {
+  const response = await fetch('/api/resources', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      title,
+      description,
+      IDowner: ownerEmail
+    })
+  });
+  return response.json();
+}
 ```
 
 ## 🤝 Contribution
