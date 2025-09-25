@@ -1,37 +1,58 @@
 services:
+  # Database service
   db:
     image: mysql:8.0
     container_name: workshop_b3_db
     restart: unless-stopped
+    platform: linux/amd64  # Explicit platform for better compatibility
     environment:
       MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-rootpassword}"
       MYSQL_DATABASE: "${MYSQL_DATABASE:-resource_management}"
       MYSQL_USER: "${MYSQL_USER:-api_user}"
       MYSQL_PASSWORD: "${MYSQL_PASSWORD:-apipassword}"
+      MYSQL_ROOT_HOST: '%'
     volumes:
       - db_data:/var/lib/mysql
-      - ./sql:/docker-entrypoint-initdb.d
+      - ./sql:/docker-entrypoint-initdb.d:ro
     ports:
       - "${DB_PORT:-3308}:3306"
+    networks:
+      - app_network
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --innodb_buffer_pool_size=256M
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 20s
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-rootpassword}"]
+      start_period: 30s
+      interval: 10s
+      timeout: 5s
       retries: 10
+    security_opt:
+      - no-new-privileges:true
 
+  # API service
   api:
     build:
       context: .
       dockerfile: Dockerfile
+      target: production
     container_name: workshop_b3_api
+    restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
     volumes:
-      - ./public/uploads:/app/public/uploads
+      - uploads:/app/public/uploads
+      # Bind mount for development (optional)
+      # - ./public/uploads:/app/public/uploads
     ports:
       - "${API_PORT:-3002}:3001"
+    networks:
+      - app_network
     environment:
-      NODE_ENV: production
+      NODE_ENV: "${NODE_ENV:-production}"
       DB_HOST: db
       DB_PORT: 3306
       DB_USER: "${MYSQL_USER:-api_user}"
@@ -39,11 +60,25 @@ services:
       DB_NAME: "${MYSQL_DATABASE:-resource_management}"
       PORT: 3001
       RUN_SEED: "${RUN_SEED:-false}"
-    restart: unless-stopped
+      JWT_SECRET: "${JWT_SECRET:-change-this-secret-in-production}"
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/"]
+      test: ["CMD", "nc", "-z", "localhost", "3001"]
+      start_period: 30s
+      interval: 15s
       timeout: 10s
       retries: 5
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  app_network:
+    driver: bridge
+    name: workshop_b3_network
 
 volumes:
   db_data:
+    driver: local
+    name: workshop_b3_db_data
+  uploads:
+    driver: local
+    name: workshop_b3_uploads
