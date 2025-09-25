@@ -6,6 +6,42 @@ router.get('/', (_req: Request, res: Response) => {
 	res.json({ status: 'ok' });
 });
 
+router.post('/sos', async (_req: Request, res: Response) => {
+	try {
+		// IP de l'ESP8266 (point d'accès)
+		const ESP_IP = '192.168.4.1';
+
+		// Appel HTTP vers l'ESP8266
+		const response = await fetch(`http://${ESP_IP}/sos`, {
+			method: 'GET'
+		});
+
+		if (response.ok) {
+			const espData = await response.json();
+			res.json({
+				message: 'SOS déclenché via ESP8266',
+				esp_response: espData,
+				esp_ip: ESP_IP,
+				status: 'success'
+			});
+		} else {
+			res.status(502).json({
+				message: 'Erreur communication avec ESP8266',
+				esp_ip: ESP_IP,
+				status: 'error'
+			});
+		}
+	} catch (error) {
+		res.status(500).json({
+			message: 'ESP8266 non accessible',
+			error: 'Vérifiez que vous êtes connecté au WiFi ESP8266_SOS',
+			esp_ip: '192.168.4.1',
+			status: 'error'
+		});
+	}
+});
+
+// Garder aussi la route GET pour compatibilité
 router.get('/sos', async (_req: Request, res: Response) => {
 	try {
 		// IP de l'ESP8266 (point d'accès)

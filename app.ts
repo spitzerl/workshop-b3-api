@@ -16,9 +16,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-app.use('/files', filesRouter);
-app.use('/resources', resourcesRouter);
+app.use('/api', indexRouter);
+app.use('/api/users', usersRouter);
+app.use('/api/files', filesRouter);
+app.use('/api/resources', resourcesRouter);
 
 export default app;
