@@ -41,9 +41,9 @@ Déployment simplifié avec **Docker** et support natif **Linux**, **macOS** et 
 
 ## ⚡ Déploiement rapide
 
-> **TL;DR :** Une seule commande pour déployer l'API complète !
+> **TL;DR :** Quelques commandes Docker pour déployer l'API complète !
 
-### 🚀 Méthode universelle (Recommandée)
+### 🚀 Méthode recommandée
 
 **1. Clonez le projet**
 ```bash
@@ -52,9 +52,17 @@ cd workshop-b3-api
 ```
 
 **2. Lancez le déploiement**
+
+**Option A : Script automatique (Linux/macOS/Git Bash)**
 ```bash
-# Script universel - détecte automatiquement votre OS
-chmod +x deploy.cmd && ./deploy.cmd
+chmod +x deploy.sh && ./deploy.sh
+```
+
+**Option B : Commandes manuelles (Recommandé pour Windows PowerShell)**
+```powershell
+copy .env.example .env
+docker compose up --build -d
+docker compose ps
 ```
 
 **3. C'est tout ! 🎉**
@@ -81,17 +89,46 @@ deploy.bat
 </details>
 
 <details>
-<summary><strong>🐳 Docker Compose (Manuel)</strong></summary>
+<summary><strong>🐳 Docker Compose (Manuel) - Recommandé pour Windows PowerShell</strong></summary>
 
-```bash
-# Copier la configuration
-cp .env.example .env
+```powershell
+# 1. Vérifier Docker
+docker --version
+docker info
 
-# Démarrer les services
+# 2. Créer le fichier .env (si absent)
+copy .env.example .env
+
+# 3. Arrêter les conteneurs existants
+docker compose down --remove-orphans
+
+# 4. Récupérer l'image MySQL
+docker compose pull db
+
+# 5. Construire et démarrer les services
 docker compose up --build -d
 
-# Vérifier le statut
+# 6. Suivre les logs en temps réel
+docker compose logs -f
+
+# 7. Vérifier l'état des services
 docker compose ps
+
+# 8. Tester l'API (optionnel)
+curl http://localhost:3002
+```
+
+**Services accessibles :**
+- API : http://localhost:3002
+- MySQL : localhost:3308
+
+**Commandes utiles :**
+```powershell
+docker compose logs api     # Logs API seulement
+docker compose logs db      # Logs DB seulement
+docker compose restart     # Redémarrer
+docker compose down        # Arrêter
+docker compose down -v     # Arrêter + supprimer volumes
 ```
 </details>
 
