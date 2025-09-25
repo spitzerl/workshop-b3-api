@@ -109,7 +109,7 @@ test_endpoint "Fichiers utilisateur 1" "GET" "$API_URL/api/files/user/1" "" "200
 test_endpoint "Status API" "GET" "$API_URL/api/" "" "200"
 
 # Test 11: Route SOS (GET)
-test_endpoint "SOS ESP8266 (GET)" "GET" "$API_URL/api/sos" "" "500"
+test_endpoint "SOS ESP8266 (GET)" "GET" "$API_URL/api/sos" "" "200"
 
 # Test 12: Status ESP8266
 test_endpoint "Status ESP8266" "GET" "$API_URL/api/esp-status" "" "500"
