@@ -52,7 +52,9 @@ RUN mkdir -p public/uploads && \
 
 # Copy and prepare entrypoint script
 COPY --chown=nodejs:nodejs docker-entrypoint.sh ./
-RUN chmod +x docker-entrypoint.sh
+RUN chmod +x docker-entrypoint.sh && \
+    # Ensure Unix line endings (fix for Windows Git)
+    sed -i 's/\r$//' docker-entrypoint.sh
 
 # Switch to non-root user for security
 USER nodejs

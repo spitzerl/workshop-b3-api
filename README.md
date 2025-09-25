@@ -666,6 +666,44 @@ docker system prune -a --volumes
 ```
 </details>
 
+<details>
+<summary><strong>🪟 Erreur Windows : "No such file or directory" docker-entrypoint.sh</strong></summary>
+
+**Symptôme :** `[dumb-init] ./docker-entrypoint.sh: No such file or directory`
+
+**Cause :** Windows peut convertir les fins de ligne Unix (LF) en fins de ligne Windows (CRLF), rendant le script illisible pour Docker.
+
+**Solutions :**
+
+**Option 1 : Utiliser Git Bash ou WSL (Recommandé)**
+```bash
+# Dans Git Bash ou WSL
+git config core.autocrlf false
+git rm --cached -r .
+git reset --hard
+docker compose up --build -d
+```
+
+**Option 2 : Reconfigurer Git globalement**
+```cmd
+git config --global core.autocrlf input
+git clone https://github.com/votre-username/workshop-b3-api.git
+cd workshop-b3-api
+docker compose up --build -d
+```
+
+**Option 3 : Utiliser PowerShell avec commands Docker directes**
+```powershell
+# Créer le fichier .env manuellement
+copy .env.example .env
+
+# Utiliser uniquement docker-compose sans scripts
+docker compose up --build -d
+```
+
+**Vérification :** Le fichier `.gitattributes` dans le projet force automatiquement les bonnes fins de ligne pour les nouveaux clones.
+</details>
+
 ### 📊 Monitoring et logs
 
 ```bash

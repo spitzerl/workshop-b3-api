@@ -12,6 +12,15 @@ set "NC=[0m"
 echo %PURPLE%Demarrage du deploiement de l'API Resource Management...%NC%
 echo.
 
+REM Important notice for Windows users about line endings
+echo %YELLOW%IMPORTANT pour les utilisateurs Windows :%NC%
+echo Si vous obtenez l'erreur "[dumb-init] ./docker-entrypoint.sh: No such file or directory"
+echo cela indique un probleme de fins de ligne. Solutions :
+echo   1. Utilisez Git Bash au lieu de Command Prompt
+echo   2. Ou configurez Git : git config --global core.autocrlf input
+echo   3. Le fichier .gitattributes du projet corrige ce probleme pour les nouveaux clones
+echo.
+
 REM Check if Docker is installed and running
 echo %BLUE%Verification de Docker...%NC%
 docker --version >nul 2>&1
