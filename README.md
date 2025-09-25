@@ -25,15 +25,16 @@
 
 ## 🎯 Vue d'ensemble
 
-API REST moderne pour la gestion des ressources, développée avec **Node.js**, **Express** et **MySQL**.
-Déployment simplifié avec **Docker** et support natif **Linux**, **macOS** et **Windows**.
+API REST complète pour la gestion des ressources, utilisateurs et fichiers, développée avec **Node.js**, **Express** et **MySQL**.
+Intègre un système SOS connecté à ESP8266. Déploiement simplifié avec **Docker** et support natif **Linux**, **macOS** et **Windows**.
 
 ### ✨ Fonctionnalités
 
-- 🔐 **Authentification JWT** sécurisée
-- 📊 **CRUD complet** des ressources
-- 🔍 **Recherche et pagination** avancées
-- 🗄️ **Base de données MySQL** optimisée
+- 👤 **Gestion des utilisateurs** complète
+- 📦 **CRUD des ressources** avec pagination et recherche
+- 📁 **Gestion des fichiers** (upload, download, public/privé)
+- 🆘 **Système SOS** connecté à ESP8266
+- 🗄️ **Base de données MySQL** avec schéma optimisé
 - 🐳 **Containerisation Docker** multi-plateforme
 - 🚀 **Déploiement en un clic** sur toutes les plateformes
 - 🔒 **Sécurité renforcée** (utilisateurs non-root, healthchecks)
@@ -297,12 +298,8 @@ http://localhost:3002/api
 
 ### 🔐 Authentification
 
-L'API utilise **JWT (JSON Web Tokens)** pour l'authentification sécurisée.
-
-**Header requis pour les routes protégées :**
-```http
-Authorization: Bearer <votre_token_jwt>
-```
+⚠️ **Note :** Cette API n'implémente pas encore l'authentification JWT.
+Toutes les routes sont actuellement ouvertes pour faciliter le développement et les tests.
 
 ### 🎯 Test rapide
 
@@ -314,75 +311,54 @@ curl http://localhost:3002/api
 ./test-api.sh
 ```
 
-### 🔑 Routes d'authentification
+### 👤 Routes des utilisateurs
 
-#### `POST /api/auth/register`
-> Créer un nouveau compte utilisateur
-
-**Payload :**
-```json
-{
-  "email": "user@example.com",
-  "password": "motdepasse123",
-  "firstname": "John",
-  "lastname": "Doe"
-}
-```
-
-**Réponse `201` :**
-```json
-{
-  "message": "Utilisateur créé avec succès",
-  "user": {
-    "id": 1,
-    "email": "user@example.com",
-    "firstname": "John",
-    "lastname": "Doe"
-  }
-}
-```
-
-#### `POST /api/auth/login`
-> Se connecter et obtenir un token JWT
-
-**Payload :**
-```json
-{
-  "email": "user@example.com",
-  "password": "motdepasse123"
-}
-```
+#### `GET /api/users`
+> Récupérer tous les utilisateurs
 
 **Réponse `200` :**
 ```json
-{
-  "message": "Connexion réussie",
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "user": {
+[
+  {
     "id": 1,
-    "email": "user@example.com",
-    "firstname": "John",
-    "lastname": "Doe"
+    "name": "Alice Dupont",
+    "email": "alice@example.com",
+    "createdAt": "2025-09-25T10:12:47.000Z",
+    "updatedAt": "2025-09-25T10:12:47.000Z"
   }
+]
+```
+
+#### `POST /api/users`
+> Créer un nouveau utilisateur
+
+**Payload :**
+```json
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "passwordHash": "hash_du_mot_de_passe"
 }
 ```
 
+#### `DELETE /api/users/:id`
+> Supprimer un utilisateur
+
+**Réponse `204` :** Aucun contenu
+
 ### 📦 Routes des ressources
 
-> Toutes les routes suivantes nécessitent l'authentification JWT
-
-#### `GET /api/resources` 🔒
+#### `GET /api/resources`
 > Récupérer toutes les ressources avec pagination et recherche
 
 **Paramètres de requête :**
 - `page` (optionnel) : Numéro de page (défaut: 1)
 - `limit` (optionnel) : Nombre d'éléments par page (défaut: 10)
-- `search` (optionnel) : Recherche par nom
+- `search` (optionnel) : Recherche dans le titre ou la description
 
 **Exemple :**
 ```http
-GET /api/resources?page=1&limit=5&search=ordinateur
-Authorization: Bearer your-jwt-token
+GET /api/resources?page=1&limit=5&search=mysql
 ```
 
 **Réponse `200` :**
@@ -391,71 +367,162 @@ Authorization: Bearer your-jwt-token
   "resources": [
     {
       "id": 1,
-      "name": "Ordinateur portable",
-      "description": "MacBook Pro 13 pouces",
-      "category": "Informatique",
-      "available": true,
-      "created_at": "2024-01-15T10:30:00Z"
+      "title": "Guide MySQL",
+      "description": "Introduction MySQL",
+      "IDusers": 1,
+      "IDowner": 1,
+      "createdAt": "2025-09-25T10:12:47.000Z",
+      "updatedAt": "2025-09-25T10:12:47.000Z"
     }
   ],
   "pagination": {
     "page": 1,
     "limit": 5,
-    "total": 25,
-    "totalPages": 5
+    "total": 1,
+    "totalPages": 1
   }
 }
 ```
 
-#### `GET /api/resources/:id` 🔒
+#### `GET /api/resources/:id`
 > Récupérer une ressource spécifique
 
 **Réponse `200` :**
 ```json
 {
   "id": 1,
-  "name": "Ordinateur portable",
-  "description": "MacBook Pro 13 pouces",
-  "category": "Informatique",
-  "available": true,
-  "created_at": "2024-01-15T10:30:00Z"
+  "title": "Guide MySQL",
+  "description": "Introduction MySQL",
+  "IDusers": 1,
+  "IDowner": 1,
+  "createdAt": "2025-09-25T10:12:47.000Z",
+  "updatedAt": "2025-09-25T10:12:47.000Z"
 }
 ```
 
-#### `POST /api/resources` 🔒
+#### `POST /api/resources`
 > Créer une nouvelle ressource
 
 **Payload :**
 ```json
 {
-  "name": "Projecteur",
-  "description": "Projecteur HD 1080p",
-  "category": "Audiovisuel",
-  "available": true
+  "title": "Nouveau Guide",
+  "description": "Description du guide",
+  "IDowner": 1,
+  "IDusers": 1
 }
 ```
 
-#### `PUT /api/resources/:id` 🔒
+#### `PUT /api/resources/:id`
 > Modifier une ressource existante
 
 **Payload (champs optionnels) :**
 ```json
 {
-  "name": "Projecteur 4K",
-  "description": "Projecteur Ultra HD 4K",
-  "available": false
+  "title": "Titre modifié",
+  "description": "Nouvelle description"
 }
 ```
 
-#### `DELETE /api/resources/:id` 🔒
+#### `DELETE /api/resources/:id`
 > Supprimer une ressource
+
+**Réponse `204` :** Aucun contenu
+
+### 📁 Routes des fichiers
+
+#### `GET /api/files/public`
+> Récupérer tous les fichiers publics
+
+**Réponse `200` :**
+```json
+[
+  {
+    "id": 1,
+    "name": "document.pdf",
+    "mimeType": "application/pdf",
+    "ownerId": 1,
+    "isPublic": "true",
+    "createdAt": "2025-09-25T10:12:47.000Z"
+  }
+]
+```
+
+#### `GET /api/files/user/:userId`
+> Récupérer tous les fichiers d'un utilisateur spécifique
+
+#### `POST /api/files/upload`
+> Uploader un nouveau fichier
+
+**Payload (multipart/form-data) :**
+- `file` : Le fichier à uploader
+- `ownerId` : ID du propriétaire
+- `isPublic` : true/false (optionnel, défaut: false)
+
+**Réponse `201` :**
+```json
+{
+  "id": 1,
+  "name": "document.pdf",
+  "mimeType": "application/pdf",
+  "ownerId": 1,
+  "isPublic": false,
+  "createdAt": "2025-09-25T10:12:47.000Z",
+  "path": "/app/public/uploads/file-123456789.pdf"
+}
+```
+
+#### `GET /api/files/:id`
+> Récupérer les métadonnées d'un fichier
+
+#### `GET /api/files/:id/download`
+> Télécharger un fichier (retourne le fichier binaire)
+
+#### `DELETE /api/files/:id`
+> Supprimer un fichier
+
+### 🆘 Route SOS
+
+#### `POST /api/sos`
+> Déclencher un signal SOS via ESP8266
+
+**Réponse `200` (succès) :**
+```json
+{
+  "message": "SOS déclenché via ESP8266",
+  "esp_response": { /* réponse de l'ESP8266 */ },
+  "esp_ip": "192.168.4.1",
+  "status": "success"
+}
+```
+
+**Réponse `500` (ESP non accessible) :**
+```json
+{
+  "message": "ESP8266 non accessible",
+  "error": "Vérifiez que vous êtes connecté au WiFi ESP8266_SOS",
+  "esp_ip": "192.168.4.1",
+  "status": "error"
+}
+```
+
+### 📊 Routes de statut
+
+#### `GET /api/`
+> Vérifier le statut de l'API
 
 **Réponse `200` :**
 ```json
 {
-  "message": "Ressource supprimée avec succès"
+  "status": "ok"
 }
 ```
+
+#### `GET /api/esp-status`
+> Vérifier le statut de l'ESP8266
+
+#### `GET /api/test`
+> Déclencher un test sur l'ESP8266
 
 ### 🚨 Codes d'erreur
 
@@ -522,25 +589,75 @@ workshop-b3-api/
 ```sql
 -- Table des utilisateurs
 CREATE TABLE users (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  IDusers INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
   email VARCHAR(255) UNIQUE NOT NULL,
-  password VARCHAR(255) NOT NULL,  -- Hash bcrypt
-  firstname VARCHAR(100) NOT NULL,
-  lastname VARCHAR(100) NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  passwordHash VARCHAR(255) NOT NULL,
+  createdAt DATETIME NOT NULL,
+  updatedAt DATETIME NOT NULL
 );
 
 -- Table des ressources
 CREATE TABLE resources (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(255) NOT NULL,
-  description TEXT,
-  category VARCHAR(100) NOT NULL,
-  available BOOLEAN DEFAULT TRUE,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  IDresources INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(50) NOT NULL,
+  description VARCHAR(50),
+  IDusers INT,
+  IDowner INT NOT NULL,
+  createdAt DATETIME NOT NULL,
+  updatedAt DATETIME NOT NULL
 );
+
+-- Table des versions de fichiers
+CREATE TABLE file_versions (
+  IDFileVersions VARCHAR(50) PRIMARY KEY,
+  uploadAt DATETIME,
+  IDfile INT,
+  versionNumber INT NOT NULL,
+  filepath VARCHAR(255)
+);
+
+-- Table des fichiers
+CREATE TABLE file (
+  IDfile INT AUTO_INCREMENT PRIMARY KEY,
+  nameFile VARCHAR(255) NOT NULL,
+  typeFile VARCHAR(100),
+  createdAt DATE,
+  IDusers INT,
+  filepath VARCHAR(255),
+  IDFileVersions VARCHAR(50) NOT NULL,
+  IDusers_1 INT NOT NULL,
+  isPublic BOOLEAN DEFAULT FALSE,
+  FOREIGN KEY(IDFileVersions) REFERENCES file_versions(IDFileVersions),
+  FOREIGN KEY(IDusers_1) REFERENCES users(IDusers)
+);
+
+-- Table des messages
+CREATE TABLE message (
+  IDmessage INT AUTO_INCREMENT PRIMARY KEY,
+  content VARCHAR(50) NOT NULL,
+  isRead BOOLEAN NOT NULL,
+  createdAt DATETIME NOT NULL,
+  IDusers INT NOT NULL,
+  FOREIGN KEY(IDusers) REFERENCES users(IDusers)
+);
+
+-- Table de partage des ressources
+CREATE TABLE resource_share (
+  IDresources_1 INT,
+  IDusers_1 INT,
+  permission VARCHAR(50) NOT NULL,
+  createdAt DATETIME NOT NULL,
+  IDresources INT,
+  IDusers INT,
+  PRIMARY KEY(IDresources_1, IDusers_1),
+  FOREIGN KEY(IDresources_1) REFERENCES resources(IDresources),
+  FOREIGN KEY(IDusers_1) REFERENCES users(IDusers)
+);
+
+-- Index pour les performances
+CREATE INDEX idx_file_isPublic ON file(isPublic);
+CREATE INDEX idx_file_user_public ON file(IDusers, isPublic);
 ```
 
 ## 🔧 Développement
