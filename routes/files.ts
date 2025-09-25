@@ -55,42 +55,91 @@ const deleteFile = (filePath: string) => {
  */
 router.post('/upload', upload.single('file'), async (req, res) => {
     if (!req.file) {
-        return res.status(400).send('Aucun fichier n\'a été envoyé.');
+        return res.status(400).json({ error: 'Aucun fichier n\'a été envoyé.' });
     }
 
     const { originalname, mimetype, path: filePath } = req.file;
-    const IDusers = req.body.IDusers;
+    const { ownerId, isPublic = false } = req.body;
+
+    if (!ownerId) {
+        deleteFile(filePath);
+        return res.status(400).json({ error: 'ownerId est requis.' });
+    }
 
     try {
         // Générer un ID unique pour la version du fichier
         const IDFileVersions = 'v1f' + Date.now();
-        
+
         // D'abord créer la version du fichier
         await db.query(
             'INSERT INTO file_versions (IDFileVersions, uploadAt, versionNumber, filepath) VALUES (?, NOW(), 1, ?)',
             [IDFileVersions, filePath]
         );
 
-        // Ensuite créer l'entrée principale du fichier
+        // Ensuite créer l'entrée principale du fichier avec support isPublic
         const [fileResult]: any = await db.query(
-            'INSERT INTO file (nameFile, typeFile, createdAt, IDusers, filepath, IDFileVersions, IDusers_1) VALUES (?, ?, NOW(), ?, ?, ?, ?)',
-            [originalname, mimetype, IDusers, filePath, IDFileVersions, IDusers]
+            'INSERT INTO file (nameFile, typeFile, createdAt, IDusers, filepath, IDFileVersions, IDusers_1, isPublic) VALUES (?, ?, NOW(), ?, ?, ?, ?, ?)',
+            [originalname, mimetype, ownerId, filePath, IDFileVersions, ownerId, isPublic ? 1 : 0]
         );
         const IDfile = fileResult.insertId;
 
         res.status(201).json({
-            message: 'Fichier téléchargé et données sauvegardées avec succès.',
-            IDfile,
-            IDFileVersions,
-            filename: originalname,
+            id: IDfile,
+            name: originalname,
+            mimeType: mimetype,
+            ownerId: ownerId,
+            isPublic: isPublic,
+            createdAt: new Date().toISOString(),
+            path: filePath
         });
 
     } catch (err) {
         console.error('Erreur lors de la sauvegarde des données du fichier:', err);
         deleteFile(filePath);
-        res.status(500).send('Erreur lors de la sauvegarde des données du fichier.');
+        res.status(500).json({ error: 'Erreur lors de la sauvegarde des données du fichier.' });
     }
 });
+
+    /**
+     * @route GET /files/public
+     * @desc  Récupère tous les fichiers publics.
+     */
+    router.get('/public', async (req, res) => {
+        try {
+            const [files] = await db.query(
+                `SELECT f.IDfile as id, f.nameFile as name, f.typeFile as mimeType,
+                 f.createdAt, f.IDusers as ownerId, 'true' as isPublic
+                 FROM file f
+                 WHERE f.isPublic = 1`
+            );
+            res.json(files);
+        } catch (err) {
+            console.error('Erreur lors de la récupération des fichiers publics:', err);
+            res.status(500).json({ error: 'Erreur lors de la récupération des fichiers publics.' });
+        }
+    });
+
+    /**
+     * @route GET /files/user/:userId
+     * @desc  Récupère tous les fichiers d'un utilisateur spécifique.
+     */
+    router.get('/user/:userId', async (req, res) => {
+        const { userId } = req.params;
+        try {
+            const [files] = await db.query(
+                `SELECT f.IDfile as id, f.nameFile as name, f.typeFile as mimeType,
+                 f.createdAt, f.IDusers as ownerId,
+                 CASE WHEN f.isPublic = 1 THEN 'true' ELSE 'false' END as isPublic
+                 FROM file f
+                 WHERE f.IDusers = ?`,
+                [userId]
+            );
+            res.json(files);
+        } catch (err) {
+            console.error('Erreur lors de la récupération des fichiers utilisateur:', err);
+            res.status(500).json({ error: 'Erreur lors de la récupération des fichiers utilisateur.' });
+        }
+    });
 
     /**
      * @route GET /files
@@ -98,19 +147,24 @@ router.post('/upload', upload.single('file'), async (req, res) => {
      */
     router.get('/', async (req, res) => {
         try {
-            const [files] = await db.query('SELECT IDfile, nameFile, typeFile, createdAt, IDusers FROM file');
+            const [files] = await db.query(
+                `SELECT f.IDfile as id, f.nameFile as name, f.typeFile as mimeType,
+                 f.createdAt, f.IDusers as ownerId,
+                 CASE WHEN f.isPublic = 1 THEN 'true' ELSE 'false' END as isPublic
+                 FROM file f`
+            );
             res.json(files);
         } catch (err) {
             console.error('Erreur lors de la récupération des fichiers:', err);
-            res.status(500).send('Erreur lors de la récupération de la liste des fichiers.');
+            res.status(500).json({ error: 'Erreur lors de la récupération de la liste des fichiers.' });
         }
     });
 
     /**
-     * @route GET /files/:IDfile
-     * @desc  Télécharge un fichier spécifique par son ID de fichier.
+     * @route GET /files/:IDfile/download
+     * @desc  Télécharge un fichier spécifique par son ID sous forme de bytes.
      */
-    router.get('/:IDfile', async (req, res) => {
+    router.get('/:IDfile/download', async (req, res) => {
         const { IDfile } = req.params;
 
         try {
@@ -120,22 +174,51 @@ router.post('/upload', upload.single('file'), async (req, res) => {
             );
 
             if (rows.length === 0) {
-                return res.status(404).send('Fichier non trouvé.');
+                return res.status(404).json({ error: 'Fichier non trouvé.' });
             }
 
             const { filepath, nameFile } = rows[0];
             const absolutePath = path.resolve(filepath);
 
             if (fs.existsSync(absolutePath)) {
-                // Utilisez res.download pour forcer le téléchargement avec le nom de fichier d'origine
-                res.download(absolutePath, nameFile);
+                // Pour Flutter, renvoyer le fichier avec les bons headers
+                res.setHeader('Content-Disposition', `attachment; filename="${nameFile}"`);
+                res.sendFile(absolutePath);
             } else {
-                res.status(404).send('Fichier non trouvé sur le serveur.');
+                res.status(404).json({ error: 'Fichier non trouvé sur le serveur.' });
             }
 
         } catch (err) {
             console.error('Erreur lors de la récupération du chemin du fichier:', err);
-            res.status(500).send('Erreur lors de la récupération du fichier.');
+            res.status(500).json({ error: 'Erreur lors de la récupération du fichier.' });
+        }
+    });
+
+    /**
+     * @route GET /files/:IDfile
+     * @desc  Récupère les métadonnées d'un fichier spécifique.
+     */
+    router.get('/:IDfile', async (req, res) => {
+        const { IDfile } = req.params;
+
+        try {
+            const [rows]: any = await db.query(
+                `SELECT f.IDfile as id, f.nameFile as name, f.typeFile as mimeType,
+                 f.createdAt, f.IDusers as ownerId,
+                 CASE WHEN f.isPublic = 1 THEN 'true' ELSE 'false' END as isPublic
+                 FROM file f WHERE f.IDfile = ?`,
+                [IDfile]
+            );
+
+            if (rows.length === 0) {
+                return res.status(404).json({ error: 'Fichier non trouvé.' });
+            }
+
+            res.json(rows[0]);
+
+        } catch (err) {
+            console.error('Erreur lors de la récupération des métadonnées du fichier:', err);
+            res.status(500).json({ error: 'Erreur lors de la récupération des métadonnées du fichier.' });
         }
     });
 
@@ -188,7 +271,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
             // 1. Récupère le chemin du fichier pour le supprimer physiquement
             const [rows]: any = await db.query('SELECT filepath FROM file WHERE IDfile = ?', [IDfile]);
             if (rows.length === 0) {
-                return res.status(404).send('Fichier non trouvé.');
+                return res.status(404).json({ error: 'Fichier non trouvé.' });
             }
 
             const { filepath } = rows[0];
@@ -199,11 +282,11 @@ router.post('/upload', upload.single('file'), async (req, res) => {
             // 3. Supprime le fichier physique
             deleteFile(filepath);
 
-            res.status(200).send('Fichier supprimé avec succès.');
+            res.status(200).json({ message: 'Fichier supprimé avec succès.' });
 
         } catch (err) {
             console.error('Erreur lors de la suppression du fichier:', err);
-            res.status(500).send('Erreur lors de la suppression du fichier.');
+            res.status(500).json({ error: 'Erreur lors de la suppression du fichier.' });
         }
     });
 

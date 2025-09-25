@@ -14,13 +14,42 @@ interface ResourceRow extends RowDataPacket {
 
 const router = Router();
 
-// GET all resources
-router.get('/', async (_req: Request, res: Response) => {
+// GET all resources with pagination and search
+router.get('/', async (req: Request, res: Response) => {
   try {
-    const [rows] = await pool.query<ResourceRow[]>(
-      'SELECT IDresources, title, description, IDusers, IDowner, createdAt, updatedAt FROM resources'
-    );
-    res.json(rows);
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const search = req.query.search as string;
+    const offset = (page - 1) * limit;
+
+    let query = 'SELECT IDresources as id, title, description, IDusers, IDowner, createdAt, updatedAt FROM resources';
+    let countQuery = 'SELECT COUNT(*) as total FROM resources';
+    const queryParams: any[] = [];
+
+    if (search) {
+      query += ' WHERE title LIKE ? OR description LIKE ?';
+      countQuery += ' WHERE title LIKE ? OR description LIKE ?';
+      const searchParam = `%${search}%`;
+      queryParams.push(searchParam, searchParam);
+    }
+
+    query += ' ORDER BY createdAt DESC LIMIT ? OFFSET ?';
+    queryParams.push(limit, offset);
+
+    // Execute queries
+    const [rows] = await pool.query<ResourceRow[]>(query, queryParams);
+    const [countResult] = await pool.query<any[]>(countQuery, search ? [`%${search}%`, `%${search}%`] : []);
+    const total = countResult[0].total;
+
+    res.json({
+      resources: rows,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
   } catch (err: any) {
     res.status(500).json({ message: err.message });
   }
@@ -31,7 +60,7 @@ router.get('/:id', async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
     const [rows] = await pool.query<ResourceRow[]>(
-      'SELECT IDresources, title, description, IDusers, IDowner, createdAt, updatedAt FROM resources WHERE IDresources = ?',
+      'SELECT IDresources as id, title, description, IDusers, IDowner, createdAt, updatedAt FROM resources WHERE IDresources = ?',
       [id]
     );
     const resource = rows[0];
@@ -53,7 +82,7 @@ router.post('/', async (req: Request, res: Response) => {
       'INSERT INTO resources (title, description, IDusers, IDowner, createdAt, updatedAt) VALUES (?, ?, ?, ?, NOW(), NOW())',
       [title, description ?? null, IDusers ?? null, IDowner]
     );
-    return res.status(201).json({ IDresources: result.insertId, title, description, IDowner });
+    return res.status(201).json({ id: result.insertId, title, description, IDowner });
   } catch (err: any) {
     return res.status(400).json({ message: (err as Error).message });
   }
@@ -88,7 +117,7 @@ router.put('/:id', async (req: Request, res: Response) => {
     }
 
     return res.json({
-      IDresources: Number(id),
+      id: Number(id),
       ...(title !== undefined && { title }),
       ...(description !== undefined && { description }),
       ...(IDusers !== undefined && { IDusers }),

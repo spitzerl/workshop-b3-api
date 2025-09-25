@@ -53,10 +53,15 @@ CREATE TABLE IF NOT EXISTS file (
    filepath VARCHAR(255),
    IDFileVersions VARCHAR(50) NOT NULL,
    IDusers_1 INT NOT NULL,
+   isPublic BOOLEAN DEFAULT FALSE,
    PRIMARY KEY(IDfile),
    FOREIGN KEY(IDFileVersions) REFERENCES file_versions(IDFileVersions),
    FOREIGN KEY(IDusers_1) REFERENCES users(IDusers)
 );
+
+-- Index pour les performances sur isPublic
+CREATE INDEX idx_file_isPublic ON file(isPublic);
+CREATE INDEX idx_file_user_public ON file(IDusers, isPublic);
 
 -- Table : resource_share
 CREATE TABLE IF NOT EXISTS resource_share (
@@ -120,10 +125,15 @@ CREATE TABLE IF NOT EXISTS file(
    filepath VARCHAR(255),
    IDFileVersions VARCHAR(50) NOT NULL,
    IDusers_1 INT NOT NULL,
+   isPublic BOOLEAN DEFAULT FALSE,
    PRIMARY KEY(IDfile),
    FOREIGN KEY(IDFileVersions) REFERENCES file_versions(IDFileVersions),
    FOREIGN KEY(IDusers_1) REFERENCES users(IDusers)
 );
+
+-- Index pour les performances sur isPublic
+CREATE INDEX idx_file_isPublic ON file(isPublic);
+CREATE INDEX idx_file_user_public ON file(IDusers, isPublic);
 
 CREATE TABLE IF NOT EXISTS resource_share(
    IDresources_1 INT,
