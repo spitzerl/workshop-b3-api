@@ -1,151 +1,288 @@
 # 🚀 API Resource Management
 
+<div align="center">
+
+[![Docker](https://img.shields.io/badge/Docker-Supported-blue?logo=docker)](https://www.docker.com/)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-green?logo=node.js)](https://nodejs.org/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0-orange?logo=mysql)](https://www.mysql.com/)
+[![Cross-Platform](https://img.shields.io/badge/Cross--Platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey)](https://github.com/yourusername/workshop-b3-api)
+
+*API REST robuste pour la gestion des ressources avec déploiement Docker multi-plateforme*
+
+</div>
+
 ## 📋 Table des matières
 
-1. [Vue d'ensemble](#vue-densemble)
-2. [Installation](#installation)
-3. [Configuration](#configuration)
-4. [Documentation API](#documentation-api)
-5. [Architecture technique](#architecture-technique)
-6. [Dépannage](#dépannage)
+1. [🎯 Vue d'ensemble](#-vue-densemble)
+2. [⚡ Déploiement rapide](#-déploiement-rapide)
+3. [📦 Installation détaillée](#-installation-détaillée)
+4. [⚙️ Configuration](#-configuration)
+5. [📚 Documentation API](#-documentation-api)
+6. [🏗️ Architecture](#-architecture)
+7. [🔧 Développement](#-développement)
+8. [🆘 Dépannage](#-dépannage)
+9. [🤝 Contribution](#-contribution)
 
-## Vue d'ensemble
+## 🎯 Vue d'ensemble
 
-API REST pour la gestion des ressources développée avec Node.js, Express et MySQL.
+API REST moderne pour la gestion des ressources, développée avec **Node.js**, **Express** et **MySQL**.
+Déployment simplifié avec **Docker** et support natif **Linux**, **macOS** et **Windows**.
 
-**Fonctionnalités principales :**
-- Gestion des utilisateurs et authentification
-- CRUD des ressources
-- Base de données MySQL
-- Containerisation Docker
+### ✨ Fonctionnalités
 
-## 📦 Installation
+- 🔐 **Authentification JWT** sécurisée
+- 📊 **CRUD complet** des ressources
+- 🔍 **Recherche et pagination** avancées
+- 🗄️ **Base de données MySQL** optimisée
+- 🐳 **Containerisation Docker** multi-plateforme
+- 🚀 **Déploiement en un clic** sur toutes les plateformes
+- 🔒 **Sécurité renforcée** (utilisateurs non-root, healthchecks)
+- 📦 **Multi-stage builds** pour des images optimisées
 
-### Option 1 : Installation avec Docker (Recommandé)
+## ⚡ Déploiement rapide
 
-#### Prérequis
-- Docker Desktop installé et démarré
-- Git (optionnel)
+> **TL;DR :** Une seule commande pour déployer l'API complète !
 
-#### Étapes d'installation
+### 🚀 Méthode universelle (Recommandée)
 
-1. **Récupérer le projet**
+**1. Clonez le projet**
 ```bash
-git clone <votre-repo>
+git clone https://github.com/votre-username/workshop-b3-api.git
 cd workshop-b3-api
 ```
 
-2. **Configurer l'environnement**
+**2. Lancez le déploiement**
 ```bash
-# Windows
-copy .env.example .env
-
-# Linux/macOS
-cp .env.example .env
+# Script universel - détecte automatiquement votre OS
+chmod +x deploy.cmd && ./deploy.cmd
 ```
 
-3. **Démarrer avec Docker**
+**3. C'est tout ! 🎉**
+- ✅ API disponible : http://localhost:3002
+- ✅ Base de données : localhost:3308
 
-**🪟 Windows :**
-```cmd
-deploy.bat
-```
+### 📱 Méthodes spécifiques par plateforme
 
-**🐧 Linux / 🍎 macOS :**
+<details>
+<summary><strong>🐧 Linux / 🍎 macOS</strong></summary>
+
 ```bash
 chmod +x deploy.sh
 ./deploy.sh
 ```
+</details>
 
-**🐳 Commande universelle :**
+<details>
+<summary><strong>🪟 Windows (Command Prompt)</strong></summary>
+
+```cmd
+deploy.bat
+```
+</details>
+
+<details>
+<summary><strong>🐳 Docker Compose (Manuel)</strong></summary>
+
 ```bash
-docker-compose up --build -d
+# Copier la configuration
+cp .env.example .env
+
+# Démarrer les services
+docker compose up --build -d
+
+# Vérifier le statut
+docker compose ps
+```
+</details>
+
+## 📦 Installation détaillée
+
+### Prérequis
+
+| Composant | Version | Obligatoire | Note |
+|-----------|---------|-------------|------|
+| **Docker Desktop** | Dernière version | ✅ Oui | [Télécharger ici](https://www.docker.com/products/docker-desktop) |
+| **Git** | Dernière version | 📋 Optionnel | Pour cloner le repository |
+| **Node.js** | 18+ | ❌ Non* | *Uniquement pour développement local |
+
+### Installation avec Docker (Recommandé)
+
+> Cette méthode fonctionne sur **Linux**, **macOS**, et **Windows** sans configuration supplémentaire.
+
+#### Étape 1 : Récupération du projet
+
+```bash
+# Via Git (recommandé)
+git clone https://github.com/votre-username/workshop-b3-api.git
+cd workshop-b3-api
+
+# Ou téléchargez le ZIP depuis GitHub
 ```
 
-4. **Vérification**
-- API : http://localhost:3002
-- Base de données : localhost:3308
+#### Étape 2 : Configuration automatique
 
-### Option 2 : Installation manuelle
+Le script de déploiement crée automatiquement le fichier `.env` avec les valeurs par défaut.
+Pour personnaliser la configuration, éditez `.env` avant le déploiement :
+
+```bash
+# Optionnel : personnaliser la configuration
+cp .env.example .env
+nano .env  # Linux/Mac
+notepad .env  # Windows
+```
+
+#### Étape 3 : Déploiement
+
+**Option A : Script universel**
+```bash
+chmod +x deploy.cmd
+./deploy.cmd
+```
+
+**Option B : Script spécifique**
+```bash
+# Linux/macOS/Git Bash
+chmod +x deploy.sh && ./deploy.sh
+
+# Windows Command Prompt
+deploy.bat
+```
+
+#### Étape 4 : Vérification
+
+Une fois le déploiement terminé :
+- 🌐 **API** : http://localhost:3002
+- 🗄️ **MySQL** : localhost:3308 (utilisateur: `api_user`, mot de passe: `apipassword`)
+
+### Installation manuelle (Développement)
+
+<details>
+<summary><strong>Pour les développeurs souhaitant installer sans Docker</strong></summary>
 
 #### Prérequis
-- Node.js (v16+)
-- MySQL (v8+)
-- npm ou yarn
+- **Node.js** 18+
+- **MySQL** 8.0+
+- **npm** ou **yarn**
 
 #### Étapes
 
-1. **Installation des dépendances**
-```bash
-npm install
-```
+1. **Cloner et installer**
+   ```bash
+   git clone https://github.com/votre-username/workshop-b3-api.git
+   cd workshop-b3-api
+   npm install
+   ```
 
-2. **Configuration de la base de données**
-- Créer une base MySQL nommée `resource_management`
-- Créer un utilisateur `api_user` avec le mot de passe `apipassword`
+2. **Configurer MySQL**
+   ```sql
+   CREATE DATABASE resource_management;
+   CREATE USER 'api_user'@'localhost' IDENTIFIED BY 'apipassword';
+   GRANT ALL PRIVILEGES ON resource_management.* TO 'api_user'@'localhost';
+   FLUSH PRIVILEGES;
+   ```
 
-3. **Configuration**
-```bash
-cp .env.example .env
-# Modifier les variables DB_HOST, DB_USER, etc. dans .env
-```
+3. **Configurer l'environnement**
+   ```bash
+   cp .env.example .env
+   # Éditer .env et décommenter les variables DB_* pour utilisation locale
+   ```
 
-4. **Démarrage**
-```bash
-npm run dev
-```
+4. **Démarrer l'API**
+   ```bash
+   # Mode développement (avec rechargement automatique)
+   npm run dev
+
+   # Mode production
+   npm start
+   ```
+
+</details>
 
 ## ⚙️ Configuration
 
-### Variables d'environnement
+La configuration se fait via le fichier `.env` créé automatiquement lors du déploiement.
 
-| Variable | Description | Défaut |
-|----------|-------------|---------|
-| `MYSQL_ROOT_PASSWORD` | Mot de passe root MySQL | `rootpassword` |
-| `MYSQL_DATABASE` | Nom de la base de données | `resource_management` |
-| `MYSQL_USER` | Utilisateur MySQL | `api_user` |
-| `MYSQL_PASSWORD` | Mot de passe utilisateur | `apipassword` |
-| `DB_PORT` | Port de la base de données | `3308` |
-| `API_PORT` | Port de l'API | `3002` |
-| `NODE_ENV` | Environnement d'exécution | `development` |
-| `RUN_SEED` | Exécuter les données de test | `false` |
-| `JWT_SECRET` | Clé secrète JWT | À définir |
+### Variables principales
 
-### Configuration Docker vs Manuel
+| Variable | Description | Défaut | Obligatoire |
+|----------|-------------|---------|-------------|
+| `API_PORT` | Port externe pour l'API | `3002` | ✅ |
+| `DB_PORT` | Port externe pour MySQL | `3308` | ✅ |
+| `MYSQL_ROOT_PASSWORD` | Mot de passe root MySQL | `rootpassword` | ✅ |
+| `MYSQL_DATABASE` | Nom de la base | `resource_management` | ✅ |
+| `MYSQL_USER` | Utilisateur MySQL | `api_user` | ✅ |
+| `MYSQL_PASSWORD` | Mot de passe utilisateur | `apipassword` | ✅ |
+| `JWT_SECRET` | Clé de chiffrement JWT | *À changer en production* | 🔒 |
+| `NODE_ENV` | Environnement | `development` | 📋 |
+| `RUN_SEED` | Données de test | `false` | 📋 |
 
-**Docker :** Utilise les variables `MYSQL_*` pour la création automatique de la base.
+### Génération d'une clé JWT sécurisée
 
-**Manuel :** Décommentez et configurez les variables `DB_*` dans le .env :
+```bash
+# Générer une clé aléatoire forte
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+
+# Ou utiliser OpenSSL
+openssl rand -hex 32
+```
+
+### Configuration pour développement local
+
+Pour utiliser une base MySQL locale (sans Docker), décommentez dans `.env` :
+
 ```env
+# Configuration locale (décommenter pour usage sans Docker)
 DB_HOST=localhost
 DB_USER=root
-DB_PASSWORD=YOUR_PASSWORD
+DB_PASSWORD=YOUR_MYSQL_PASSWORD
 DB_NAME=resource_management
 PORT=3001
 ```
 
+### Personnalisation des ports
+
+Si les ports par défaut sont occupés :
+
+```env
+# Exemple : changer les ports
+API_PORT=3005
+DB_PORT=3309
+```
+
+L'API sera alors accessible sur http://localhost:3005
+
 ## 📚 Documentation API
 
-### URL de base
+### 🌐 URL de base
 ```
 http://localhost:3002/api
 ```
 
-### Authentification
+### 🔐 Authentification
 
-L'API utilise JWT (JSON Web Tokens) pour l'authentification.
+L'API utilise **JWT (JSON Web Tokens)** pour l'authentification sécurisée.
 
 **Header requis pour les routes protégées :**
+```http
+Authorization: Bearer <votre_token_jwt>
 ```
-Authorization: Bearer <token>
+
+### 🎯 Test rapide
+
+```bash
+# Tester la connectivité
+curl http://localhost:3002/api
+
+# Ou utiliser le script de test fourni
+./test-api.sh
 ```
 
-### Routes d'authentification
+### 🔑 Routes d'authentification
 
-#### POST /auth/register
-Créer un nouveau compte utilisateur.
+#### `POST /api/auth/register`
+> Créer un nouveau compte utilisateur
 
-**Body :**
+**Payload :**
 ```json
 {
   "email": "user@example.com",
@@ -155,7 +292,7 @@ Créer un nouveau compte utilisateur.
 }
 ```
 
-**Réponse (201) :**
+**Réponse `201` :**
 ```json
 {
   "message": "Utilisateur créé avec succès",
@@ -168,10 +305,10 @@ Créer un nouveau compte utilisateur.
 }
 ```
 
-#### POST /auth/login
-Se connecter et obtenir un token JWT.
+#### `POST /api/auth/login`
+> Se connecter et obtenir un token JWT
 
-**Body :**
+**Payload :**
 ```json
 {
   "email": "user@example.com",
@@ -179,7 +316,7 @@ Se connecter et obtenir un token JWT.
 }
 ```
 
-**Réponse (200) :**
+**Réponse `200` :**
 ```json
 {
   "message": "Connexion réussie",
@@ -193,10 +330,12 @@ Se connecter et obtenir un token JWT.
 }
 ```
 
-### Routes des ressources
+### 📦 Routes des ressources
 
-#### GET /resources
-Récupérer toutes les ressources. 🔒 *Authentification requise*
+> Toutes les routes suivantes nécessitent l'authentification JWT
+
+#### `GET /api/resources` 🔒
+> Récupérer toutes les ressources avec pagination et recherche
 
 **Paramètres de requête :**
 - `page` (optionnel) : Numéro de page (défaut: 1)
@@ -204,11 +343,12 @@ Récupérer toutes les ressources. 🔒 *Authentification requise*
 - `search` (optionnel) : Recherche par nom
 
 **Exemple :**
-```
+```http
 GET /api/resources?page=1&limit=5&search=ordinateur
+Authorization: Bearer your-jwt-token
 ```
 
-**Réponse (200) :**
+**Réponse `200` :**
 ```json
 {
   "resources": [
@@ -230,13 +370,10 @@ GET /api/resources?page=1&limit=5&search=ordinateur
 }
 ```
 
-#### GET /resources/:id
-Récupérer une ressource spécifique. 🔒 *Authentification requise*
+#### `GET /api/resources/:id` 🔒
+> Récupérer une ressource spécifique
 
-**Paramètres :**
-- `id` : ID de la ressource
-
-**Réponse (200) :**
+**Réponse `200` :**
 ```json
 {
   "id": 1,
@@ -248,10 +385,10 @@ Récupérer une ressource spécifique. 🔒 *Authentification requise*
 }
 ```
 
-#### POST /resources
-Créer une nouvelle ressource. 🔒 *Authentification requise*
+#### `POST /api/resources` 🔒
+> Créer une nouvelle ressource
 
-**Body :**
+**Payload :**
 ```json
 {
   "name": "Projecteur",
@@ -261,28 +398,10 @@ Créer une nouvelle ressource. 🔒 *Authentification requise*
 }
 ```
 
-**Réponse (201) :**
-```json
-{
-  "message": "Ressource créée avec succès",
-  "resource": {
-    "id": 2,
-    "name": "Projecteur",
-    "description": "Projecteur HD 1080p",
-    "category": "Audiovisuel",
-    "available": true,
-    "created_at": "2024-01-15T11:00:00Z"
-  }
-}
-```
+#### `PUT /api/resources/:id` 🔒
+> Modifier une ressource existante
 
-#### PUT /resources/:id
-Modifier une ressource existante. 🔒 *Authentification requise*
-
-**Paramètres :**
-- `id` : ID de la ressource
-
-**Body (tous les champs optionnels) :**
+**Payload (champs optionnels) :**
 ```json
 {
   "name": "Projecteur 4K",
@@ -291,181 +410,284 @@ Modifier une ressource existante. 🔒 *Authentification requise*
 }
 ```
 
-**Réponse (200) :**
-```json
-{
-  "message": "Ressource modifiée avec succès",
-  "resource": {
-    "id": 2,
-    "name": "Projecteur 4K",
-    "description": "Projecteur Ultra HD 4K",
-    "category": "Audiovisuel",
-    "available": false,
-    "updated_at": "2024-01-15T12:00:00Z"
-  }
-}
-```
+#### `DELETE /api/resources/:id` 🔒
+> Supprimer une ressource
 
-#### DELETE /resources/:id
-Supprimer une ressource. 🔒 *Authentification requise*
-
-**Paramètres :**
-- `id` : ID de la ressource
-
-**Réponse (200) :**
+**Réponse `200` :**
 ```json
 {
   "message": "Ressource supprimée avec succès"
 }
 ```
 
-### Codes d'erreur
+### 🚨 Codes d'erreur
 
-| Code | Description |
-|------|-------------|
-| `400` | Bad Request - Données invalides |
-| `401` | Unauthorized - Token manquant ou invalide |
-| `403` | Forbidden - Accès refusé |
-| `404` | Not Found - Ressource non trouvée |
-| `409` | Conflict - Email déjà utilisé |
-| `500` | Internal Server Error - Erreur serveur |
+| Code | Description | Action recommandée |
+|------|-------------|-------------------|
+| `400` | Bad Request | Vérifiez le format des données |
+| `401` | Unauthorized | Token manquant/invalide/expiré |
+| `403` | Forbidden | Permissions insuffisantes |
+| `404` | Not Found | Ressource inexistante |
+| `409` | Conflict | Email déjà utilisé |
+| `500` | Internal Server Error | Voir les logs serveur |
 
-**Format d'erreur :**
+**Format d'erreur standardisé :**
 ```json
 {
   "error": "Message d'erreur",
-  "details": "Détails additionnels (optionnel)"
+  "code": "ERROR_CODE",
+  "details": "Détails techniques (optionnel)"
 }
 ```
 
-## 🏗️ Architecture technique
+## 🏗️ Architecture
 
-### Structure du projet
+### 📁 Structure du projet
 ```
 workshop-b3-api/
-├── src/
-│   ├── controllers/     # Logique métier
-│   ├── models/         # Modèles de données
-│   ├── routes/         # Définition des routes
-│   ├── middleware/     # Middlewares (auth, validation)
-│   ├── config/         # Configuration (DB, JWT)
-│   └── utils/          # Utilitaires
-├── docker-compose.yml  # Configuration Docker
-├── Dockerfile         # Image Docker de l'API
-├── .env.example       # Variables d'environnement exemple
-└── package.json       # Dépendances Node.js
+├── 🚀 Scripts de déploiement
+│   ├── deploy.sh         # Linux/macOS
+│   ├── deploy.bat        # Windows
+│   └── deploy.cmd        # Universel
+├── 🐳 Configuration Docker
+│   ├── Dockerfile        # Multi-stage optimisé
+│   ├── docker-compose.yml # Services orchestrés
+│   └── docker-entrypoint.sh # Point d'entrée intelligent
+├── ⚙️ Configuration
+│   ├── .env.example      # Template de configuration
+│   ├── package.json      # Dépendances Node.js
+│   └── tsconfig.json     # Configuration TypeScript
+├── 📝 Code source
+│   ├── app.ts           # Application principale
+│   ├── db.ts            # Connexion base de données
+│   ├── routes/          # Définition des routes API
+│   └── scripts/         # Scripts utilitaires
+├── 🗃️ Base de données
+│   └── sql/             # Scripts d'initialisation
+└── 📋 Documentation
+    ├── README.md        # Documentation principale
+    └── TESTING.md       # Tests et validation
 ```
 
-### Technologies utilisées
+### 🛠️ Technologies
 
-- **Runtime :** Node.js
-- **Framework :** Express.js
-- **Base de données :** MySQL 8.0
-- **ORM/Query Builder :** (à préciser selon votre implémentation)
-- **Authentification :** JWT (jsonwebtoken)
-- **Validation :** (à préciser selon votre implémentation)
-- **Containerisation :** Docker & Docker Compose
+| Composant | Technologie | Version | Rôle |
+|-----------|-------------|---------|------|
+| **Backend** | Node.js + Express | 18+ | API REST |
+| **Base de données** | MySQL | 8.0 | Stockage persistant |
+| **Authentification** | JWT | - | Sécurisation des routes |
+| **Containerisation** | Docker + Compose | - | Déploiement isolé |
+| **Language** | TypeScript | 5+ | Développement typé |
+| **Process Manager** | dumb-init | - | Gestion des signaux |
 
-### Base de données
+### 🗄️ Schéma de base de données
 
-**Table users :**
-- `id` (INT, AUTO_INCREMENT, PRIMARY KEY)
-- `email` (VARCHAR, UNIQUE, NOT NULL)
-- `password` (VARCHAR, NOT NULL) - Hash bcrypt
-- `firstname` (VARCHAR, NOT NULL)
-- `lastname` (VARCHAR, NOT NULL)
-- `created_at` (TIMESTAMP)
-- `updated_at` (TIMESTAMP)
+```sql
+-- Table des utilisateurs
+CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,  -- Hash bcrypt
+  firstname VARCHAR(100) NOT NULL,
+  lastname VARCHAR(100) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
 
-**Table resources :**
-- `id` (INT, AUTO_INCREMENT, PRIMARY KEY)
-- `name` (VARCHAR, NOT NULL)
-- `description` (TEXT)
-- `category` (VARCHAR, NOT NULL)
-- `available` (BOOLEAN, DEFAULT true)
-- `created_at` (TIMESTAMP)
-- `updated_at` (TIMESTAMP)
-
-## 🔧 Commandes utiles
-
-### Docker
-```bash
-# Démarrer les services
-docker-compose up -d
-
-# Voir les logs
-docker-compose logs -f
-
-# Redémarrer
-docker-compose restart
-
-# Arrêter
-docker-compose down
-
-# Supprimer avec les volumes (reset complet)
-docker-compose down -v
+-- Table des ressources
+CREATE TABLE resources (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  category VARCHAR(100) NOT NULL,
+  available BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
 ```
 
-### Développement
+## 🔧 Développement
+
+### Commandes Docker
+
 ```bash
-# Mode développement
+# 🚀 Gestion des services
+docker compose up -d          # Démarrer en arrière-plan
+docker compose up --build -d  # Rebuild + démarrer
+docker compose down           # Arrêter
+docker compose down -v        # Arrêter + supprimer volumes
+docker compose restart        # Redémarrer
+
+# 📋 Monitoring
+docker compose ps             # État des conteneurs
+docker compose logs -f        # Logs en temps réel
+docker compose logs -f api    # Logs API uniquement
+docker compose logs -f db     # Logs MySQL uniquement
+
+# 🧹 Nettoyage
+docker compose down --rmi all # Supprimer images
+docker system prune -a        # Nettoyage complet Docker
+```
+
+### Commandes développement
+
+```bash
+# 🔄 Mode développement (rechargement auto)
 npm run dev
 
-# Tests
-npm test
+# 🏗️ Production
+npm start
 
-# Linter
-npm run lint
+# 🌱 Données de test
+npm run seed
+```
 
-# Build production
-npm run build
+### Variables d'environnement de développement
+
+```env
+# Mode debug avec logs détaillés
+NODE_ENV=development
+LOG_LEVEL=debug
+
+# Rechargement des données de test
+RUN_SEED=true
+
+# JWT avec expiration longue pour dev
+JWT_SECRET=dev-secret-key
+JWT_EXPIRES_IN=7d
 ```
 
 ## 🆘 Dépannage
 
-### Problèmes courants
+### 🔧 Problèmes courants
 
-**Port déjà utilisé :**
-- Modifiez `API_PORT` dans `.env` (ex: 3003)
-- Modifiez `DB_PORT` dans `.env` (ex: 3309)
+<details>
+<summary><strong>🚫 Port déjà utilisé</strong></summary>
 
-**Erreur de connexion à la base :**
-- Vérifiez que Docker Desktop est démarré
-- Attendez 10-15 secondes après `docker-compose up`
-- Vérifiez les logs : `docker-compose logs mysql`
+**Symptôme :** `Error: listen EADDRINUSE :::3002`
 
-**Token JWT invalide :**
+**Solution :**
+```bash
+# Modifier les ports dans .env
+API_PORT=3005
+DB_PORT=3309
+
+# Ou trouver et tuer le processus
+lsof -ti:3002 | xargs kill -9  # Linux/Mac
+netstat -ano | findstr :3002   # Windows
+```
+</details>
+
+<details>
+<summary><strong>🗄️ Erreur de connexion base de données</strong></summary>
+
+**Symptômes :**
+- `ECONNREFUSED`
+- `Access denied for user`
+- `Unknown database`
+
+**Solutions :**
+```bash
+# 1. Vérifier que Docker fonctionne
+docker ps
+
+# 2. Attendre le démarrage complet (jusqu'à 2 minutes)
+docker compose logs -f db
+
+# 3. Reset complet si nécessaire
+docker compose down -v
+docker compose up --build -d
+```
+</details>
+
+<details>
+<summary><strong>🔑 Token JWT invalide</strong></summary>
+
+**Symptôme :** `401 Unauthorized`
+
+**Solutions :**
 - Vérifiez que `JWT_SECRET` est défini dans `.env`
-- Le token expire après 24h par défaut
+- Le token expire par défaut après 24h
+- Regénérez un token via `/api/auth/login`
+</details>
 
-**Erreur 404 sur toutes les routes :**
-- Vérifiez l'URL de base : `http://localhost:3002/api`
-- Pas `http://localhost:3002` directement
+<details>
+<summary><strong>🐳 Docker issues</strong></summary>
 
-### Logs de débogage
+**Cas courants :**
+```bash
+# Docker daemon not running
+sudo systemctl start docker    # Linux
+# Ouvrir Docker Desktop         # Windows/Mac
+
+# Permissions insuffisantes (Linux)
+sudo usermod -aG docker $USER
+newgrp docker
+
+# Espace disque insuffisant
+docker system prune -a --volumes
+```
+</details>
+
+### 📊 Monitoring et logs
 
 ```bash
-# Logs de l'API
-docker-compose logs -f api
+# Santé des services
+curl http://localhost:3002/health
 
-# Logs de la base de données
-docker-compose logs -f mysql
+# Métriques Docker
+docker stats
 
-# Logs de tous les services
-docker-compose logs -f
+# Inspection détaillée
+docker compose config  # Valider la configuration
+docker inspect workshop_b3_api
 ```
 
-### Reset complet
+### 🔄 Reset complet
 
 ```bash
-# Arrêter et supprimer tout
-docker-compose down -v
-
-# Supprimer les images
-docker-compose down --rmi all
-
-# Redémarrer proprement
-docker-compose up --build -d
+# Script de reset complet
+#!/bin/bash
+echo "🧹 Nettoyage complet..."
+docker compose down -v --remove-orphans
+docker system prune -f
+rm -f .env
+cp .env.example .env
+echo "🚀 Redémarrage..."
+./deploy.sh
 ```
+
+## 🤝 Contribution
+
+### Développement local
+
+1. Fork du projet
+2. Créer une branche : `git checkout -b feature/ma-fonctionnalite`
+3. Développer avec `npm run dev`
+4. Tester : `./test-api.sh`
+5. Commit : `git commit -m "feat: ajout fonctionnalité X"`
+6. Push : `git push origin feature/ma-fonctionnalite`
+7. Créer une Pull Request
+
+### Standards
+
+- 🎯 **Code** : TypeScript strict, ESLint
+- 📝 **Commits** : [Conventional Commits](https://conventionalcommits.org/)
+- 🧪 **Tests** : Couverture > 80%
+- 📚 **Docs** : README à jour avec les changements
+
+---
+
+<div align="center">
+
+**🚀 API Resource Management**
+
+[![Made with ❤️](https://img.shields.io/badge/Made%20with-❤️-red.svg)](#)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue?logo=docker)](#)
+[![Cross Platform](https://img.shields.io/badge/Cross--Platform-✓-green)](#)
+
+*Déploiement Docker simplifié pour toutes les plateformes*
+
+</div>
 
 
