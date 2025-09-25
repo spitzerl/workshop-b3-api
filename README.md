@@ -47,7 +47,7 @@ Déployment simplifié avec **Docker** et support natif **Linux**, **macOS** et 
 
 **1. Clonez le projet**
 ```bash
-git clone https://github.com/votre-username/workshop-b3-api.git
+git clone https://github.com/spitzerl/workshop-b3-api.git
 cd workshop-b3-api
 ```
 
